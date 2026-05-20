@@ -39,7 +39,7 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
     //Logo
     const logo = makeElement("div", "logo", null, null);
     const logoImage = document.createElement("img") as HTMLImageElement;
-    logoImage.src = "/https://raw.githubusercontent.com/CanvasStats/main/cb3fac2a0a08dcd846a53e0946a85ece3e2807bf/public/icon.svg"
+    logoImage.src = "https://raw.githubusercontent.com/CanvasStats/main/cb3fac2a0a08dcd846a53e0946a85ece3e2807bf/public/icon.svg"
     logo.appendChild(logoImage);
     const logoText = makeElement("h1", null, null, "Canvas Stats");
     logo.onclick = function() {navigateTo("/")}
