@@ -6,7 +6,7 @@ import { getYears } from "./services/canvas.service";
 import { getAllUsers, getAllUserStatsForYear } from "./services/users.service";
 
 let viewYear: number = 0;
-let yearColor: string = "white";
+let yearColor: string = "";
 const years = getYears();
 const main = document.querySelector('main') as HTMLElement;
 const urlParams = new URLSearchParams(window.location.search);
@@ -20,6 +20,8 @@ if (years.length > 0) {
     } else {
         yearColor = years[years.length - 1].contentValue;
     }
+} else {
+    yearColor = "white";
 }
 
 await initializeApp("Users", "Users", true);
