@@ -1,3 +1,5 @@
+import type { ContentPair } from "../models";
+
 export function createIconDiv(iconType: string, iconName: string) {
   const iconDiv = document.createElement('div');
   iconDiv.setAttribute('class', 'icon');
@@ -146,7 +148,7 @@ interface CountdownTime {
 
 export const getRemainingTime = (targetDate: Date): CountdownTime => {
   const total = targetDate.getTime() - new Date().getTime();
-  
+
   if (total <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, isFinished: true };
   }
@@ -180,4 +182,126 @@ export function addLoadingElement(): HTMLElement {
   loadingWrapper.appendChild(loaderSpan);
   loadingDiv.appendChild(loadingWrapper);
   return loadingDiv;
+}
+
+export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: number | null, startDate: string, endDate: string) {
+  const countdown = makeElement("article", null, "left", null);
+  const countdownIcon = makeElement("span", null, "material-symbols-outlined icon", "hourglass_top");
+  countdown.appendChild(countdownIcon);
+  const countdownInfo = makeElement("section", null, null, null);
+  const eventStart = new Date(startDate);
+  const eventEnd = new Date(endDate);
+  const initialRemainingToStart = getRemainingTime(eventStart);
+  const initialRemainingToEnd = getRemainingTime(eventEnd);
+
+  const timerTillEventStart = makeElement(
+    "p",
+    null,
+    "text",
+    initialRemainingToStart.isFinished
+      ? `Canvas ${eventStart.getFullYear()} is happening now!`
+      : `${initialRemainingToStart.days} days ${initialRemainingToStart.hours} hours ${initialRemainingToStart.minutes} minutes ${initialRemainingToStart.seconds} seconds`
+  );
+
+  const timerTillEventEnd = makeElement(
+    "p",
+    null,
+    "text",
+    initialRemainingToEnd.isFinished
+      ? `Canvas ${eventEnd.getFullYear()} has ended.`
+      : `${initialRemainingToEnd.days} days ${initialRemainingToEnd.hours} hours ${initialRemainingToEnd.minutes} minutes ${initialRemainingToEnd.seconds} seconds`
+  );
+
+  if (!initialRemainingToStart.isFinished) {
+    const eventDate = makeElement("p", null, "text", `Canvas ${eventStart.getFullYear()} will start on ${eventStart.toLocaleString('default', { month: 'long' })} ${eventStart.getDate()}.`);
+    countdownInfo.append(eventDate, timerTillEventStart);
+  } else if (!initialRemainingToEnd.isFinished) {
+    const eventDate = makeElement("p", null, "text", `Canvas ${eventStart.getFullYear()} will end on ${eventEnd.toLocaleString('default', { month: 'long' })} ${eventEnd.getDate()}.`);
+    countdownInfo.append(eventDate, timerTillEventEnd);
+  } else {
+    const eventDate = makeElement("p", null, "text", `Canvas ${eventStart.getFullYear()} has ended. Full stats, ranking, and charts will be posted soon.`);
+    countdownInfo.appendChild(eventDate);
+  }
+
+  countdown.appendChild(countdownInfo);
+  statsContainer.appendChild(countdown);
+  if (!countdownInterval && !initialRemainingToStart.isFinished) {
+    countdownInterval = window.setInterval(() => {
+      const remaining = getRemainingTime(eventStart);
+      timerTillEventStart.innerText = `${remaining.days} day${remaining.days === 1 ? "" : "s"} ${remaining.hours} hour${remaining.hours === 1 ? "" : "s"} ${remaining.minutes} minute${remaining.minutes === 1 ? "" : "s"} ${remaining.seconds} second${remaining.seconds === 1 ? "" : "s"}`;
+    }, 1000);
+  }
+
+  if (!countdownInterval && !initialRemainingToEnd.isFinished) {
+    countdownInterval = window.setInterval(() => {
+      const remaining = getRemainingTime(eventEnd);
+      timerTillEventEnd.innerText = `${remaining.days} day${remaining.days === 1 ? "" : "s"} ${remaining.hours} hour${remaining.hours === 1 ? "" : "s"} ${remaining.minutes} minute${remaining.minutes === 1 ? "" : "s"} ${remaining.seconds} second${remaining.seconds === 1 ? "" : "s"}`;
+    }, 1000);
+  }
+  if (!initialRemainingToEnd.isFinished) {
+    const templateArticle = makeElement("article", null, "right", null);
+    const templateIcon = makeElement("span", null, "material-symbols-outlined icon", null);
+    if (!initialRemainingToStart.isFinished) {
+      templateIcon.textContent = "border_clear";
+    } else {
+      templateIcon.textContent = "grid_view";
+    }
+    const templateInfo = makeElement("section", null, null, null);
+    const templateP = makeElement("p", null, "text", null);
+    if (!initialRemainingToStart.isFinished) {
+      templateP.textContent = "You can start planning your designs by using the Template feature in Canvas's setting";
+    } else {
+      templateP.textContent = "The more pixels you place, the higher your rank, so go place some pixels!"
+    }
+    const templateButtonRow = makeElement("div", null, "button-row center", null);
+    const canvasLink = document.createElement("a") as HTMLAnchorElement;
+    canvasLink.href = "https://canvas.fediverse.events/?2026";
+    canvasLink.target = "_blank";
+    canvasLink.className = "btn green";
+    const canvasLinkText = document.createTextNode("Go to Canvas");
+    const canvasLinkIcon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
+    canvasLink.append(canvasLinkText, canvasLinkIcon);
+    templateButtonRow.appendChild(canvasLink);
+    templateInfo.append(templateP, templateButtonRow);
+    templateArticle.append(templateIcon, templateInfo);
+    statsContainer.appendChild(templateArticle);
+  }
+
+
+  if (!initialRemainingToEnd.isFinished) {
+    const fullStatsArticle = makeElement("article", null, "left", null);
+    const fullStatsIcon = makeElement("span", null, "material-symbols-outlined icon", "info");
+    const fullStatsInfo = makeElement("section", null, null, null);
+    const fullStatsP = makeElement("p", null, "text", `Canvas Stats will be updated with full stats, graphs, and user rankings for ${eventEnd.getFullYear()} a day or 2 after the event concludes.`);
+    fullStatsInfo.appendChild(fullStatsP);
+    fullStatsArticle.append(fullStatsIcon, fullStatsInfo);
+    statsContainer.appendChild(fullStatsArticle);
+  }
+
+  const externalLinksArticle = makeElement("article", null, "right", null);
+  const externalLinksIcon = makeElement("span", null, "material-symbols-outlined icon", "public");
+  const externalLinksInfo = makeElement("section", null, null, null);
+  const externalLinksH3 = makeElement("h3", null, null, "Stay Connected");
+
+  const links: ContentPair[] = [
+    { contentKey: "Lemmy", contentValue: "https://toast.ooo/c/canvas" },
+    { contentKey: "Mastodon", contentValue: "https://social.fediverse.events/@canvas" },
+    { contentKey: "Matrix Space", contentValue: "https://matrix.to/#/#canvas:aftermath.gg?via=matrix.org" },
+    { contentKey: "https://discord.gg/XrDSJ2WJqa", contentValue: "Discord Server" },
+    { contentKey: "fediverse.events", contentValue: "https://fediverse.events/" }
+  ];
+  const linksUL = links.reduce((acc: HTMLElement, link: ContentPair) => {
+    const linkLi = document.createElement("li");
+    const newLink = document.createElement("a") as HTMLAnchorElement;
+    newLink.href = link.contentValue;
+    newLink.textContent = link.contentKey;
+    newLink.target = "_blank";
+    externalLinksInfo.appendChild(newLink);
+    linkLi.appendChild(newLink);
+    acc.appendChild(linkLi);
+    return acc;
+  }, document.createElement("ul"));
+  externalLinksInfo.append(externalLinksH3, linksUL);
+  externalLinksArticle.append(externalLinksIcon, externalLinksInfo);
+  statsContainer.appendChild(externalLinksArticle);
 }

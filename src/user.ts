@@ -20,7 +20,7 @@ let viewYear: number = 2025;
 let yearColor: string = "";
 let username: string = "";
 
-const years = getYears();
+const years = getYears(false);
 const urlParams = new URLSearchParams(window.location.search);
 const usernameString: string | null = urlParams.get('username');
 const yearString: string | null = urlParams.get('year');

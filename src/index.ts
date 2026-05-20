@@ -2,12 +2,13 @@ import { getYear, initializeApp } from "./main";
 import { ContentPair, type ColorCount } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
-import { addLoadingElement, getRemainingTime, makeElement } from "./modules/utils";
+import { addLoadingElement, comingSoonBlock, getRandomColor, makeElement } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 
 let viewYear: number = 2026;
 let yearColor: string = "white";
-const years = getYears();
+const years = getYears(false);
+years.push(new ContentPair("2026", getRandomColor(20, true)));
 const main = document.querySelector('main') as HTMLElement;
 const mainLoader = addLoadingElement();
 const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
@@ -57,89 +58,7 @@ async function updateStats() {
     }
 
     if (viewYear === 2026) {
-        const countdown = makeElement("article", null, "left", null);
-        const countdownIcon = makeElement("span", null, "material-symbols-outlined icon", "hourglass_top");
-        countdown.appendChild(countdownIcon);
-        const countdownInfo = makeElement("section", null, null, null);
-        const eventDate = makeElement("p", null, "text", "Canvas 2026 will start on July 18th.");
-        const eventStart = new Date("2026-07-18T04:00:00.000Z");
-        const initialRemaining = getRemainingTime(eventStart);
-        const timerP = makeElement(
-            "p", 
-            null, 
-            "text", 
-            initialRemaining.isFinished 
-                ? "Canvas 2026 is happening now!" 
-                : `${initialRemaining.days} days ${initialRemaining.hours} hours ${initialRemaining.minutes} minutes ${initialRemaining.seconds} seconds`
-        );
-
-        countdownInfo.append(eventDate, timerP);
-        countdown.appendChild(countdownInfo);
-        statsContainer.appendChild(countdown);
-        if (!countdownInterval && !initialRemaining.isFinished) {
-            countdownInterval = window.setInterval(() => {
-                const remaining = getRemainingTime(eventStart);
-                timerP.innerText = `${remaining.days} day${remaining.days === 1 ? "": "s"} ${remaining.hours} hour${remaining.hours === 1 ? "" : "s"} ${remaining.minutes} minute${remaining.minutes === 1 ? "" : "s"} ${remaining.seconds} second${remaining.seconds === 1 ? "" : "s"}`;
-                
-                if (remaining.isFinished) {
-                    clearInterval(countdownInterval!);
-                    countdownInterval = null;
-                    timerP.innerText = "Canvas 2026 is happening now!";
-                }
-            }, 1000);
-        }
-
-        const templateArticle = makeElement("article", null, "right", null);
-        const templateIcon = makeElement("span", null, "material-symbols-outlined icon", "border_clear");
-        const templateInfo = makeElement("section", null, null, null);
-        const templateP = makeElement("p", null, "text", "You can start planning your designs by using the Template feature in Canvas's setting");
-        const templateButtonRow = makeElement("div", null, "button-row center", null);
-        const canvasLink = document.createElement("a") as HTMLAnchorElement;
-        canvasLink.href = "https://canvas.fediverse.events/?2026";
-        canvasLink.target = "_blank";
-        canvasLink.className = "btn green";
-        const canvasLinkText = document.createTextNode("Go to Canvas");
-        const canvasLinkIcon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
-        canvasLink.append(canvasLinkText, canvasLinkIcon);
-        templateButtonRow.appendChild(canvasLink);
-        templateInfo.append(templateP, templateButtonRow);
-        templateArticle.append(templateIcon, templateInfo);
-        statsContainer.appendChild(templateArticle);
-
-        const fullStatsArticle = makeElement("article", null, "left", null);
-        const fullStatsIcon = makeElement("span", null, "material-symbols-outlined icon", "info");
-        const fullStatsInfo = makeElement("section", null, null, null);
-        const fullStatsP = makeElement("p", null, "text", "Canvas Stats will be updated with full stats, graphs, and user rankings a day or 2 after the event concludes.");
-        fullStatsInfo.appendChild(fullStatsP);
-        fullStatsArticle.append(fullStatsIcon, fullStatsInfo);
-        statsContainer.appendChild(fullStatsArticle);
-
-        const externalLinksArticle = makeElement("article", null, "right", null);
-        const externalLinksIcon = makeElement("span", null, "material-symbols-outlined icon", "public");
-        const externalLinksInfo = makeElement("section", null, null, null);
-        const externalLinksH3 = makeElement("h3", null, null, "Stay Connected");
-
-        const links: ContentPair[] = [
-            { contentKey: "Lemmy", contentValue: "https://toast.ooo/c/canvas" },
-            { contentKey: "Mastodon", contentValue: "https://social.fediverse.events/@canvas" },
-            { contentKey: "Matrix Space", contentValue: "https://matrix.to/#/#canvas:aftermath.gg?via=matrix.org" },
-            { contentKey: "https://discord.gg/XrDSJ2WJqa", contentValue: "Discord Server" },
-            { contentKey: "fediverse.events", contentValue: "https://fediverse.events/" }
-        ];
-        const linksUL = links.reduce((acc: HTMLElement, link: ContentPair) => {
-            const linkLi = document.createElement("li");
-            const newLink = document.createElement("a") as HTMLAnchorElement;
-            newLink.href = link.contentValue;
-            newLink.textContent = link.contentKey;
-            newLink.target = "_blank";
-            externalLinksInfo.appendChild(newLink);
-            linkLi.appendChild(newLink);
-            acc.appendChild(linkLi);
-            return acc;
-        }, document.createElement("ul"));
-        externalLinksInfo.append(externalLinksH3, linksUL);
-        externalLinksArticle.append(externalLinksIcon, externalLinksInfo);
-        statsContainer.appendChild(externalLinksArticle);
+        comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z");
     } else {
         const response = await fetch(`https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main/${viewYear}/overview${viewYear}.json`);
         const yearData = await response.json();

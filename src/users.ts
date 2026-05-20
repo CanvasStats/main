@@ -7,10 +7,12 @@ import { getAllUsers, getAllUserStatsForYear } from "./services/users.service";
 
 let viewYear: number = 0;
 let yearColor: string = "";
-const years = getYears();
+const years = getYears(true);
 const main = document.querySelector('main') as HTMLElement;
+const heading = makeElement("div", "user-list-heading", null, null);
+
 const urlParams = new URLSearchParams(window.location.search);
-const usernameString: string | null = urlParams.get('username');
+let usernameString: string | null = urlParams.get('username');
 const yearString: string | null = urlParams.get('year');
 if (yearString) viewYear = parseInt(yearString);
 if (years.length > 0) {
@@ -18,16 +20,13 @@ if (years.length > 0) {
     if (findYear) {
         yearColor = findYear.contentValue;
     } else {
-        yearColor = years[years.length - 1].contentValue;
+        yearColor = years[0].contentValue;
     }
 } else {
     yearColor = "white";
 }
 
-console.log(yearColor);
-
 await initializeApp("Users", "Users", true);
-
 const returnToTopArrow = document.getElementById("return-to-top") as HTMLElement;
 const randomColor = getRandomColor(1, true);
 returnToTopArrow.classList.add(randomColor);
@@ -36,18 +35,33 @@ returnToTopArrow.onclick = function () {
     header.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function loadUserList() {
+    heading.innerHTML = "";
+    const existingUserList = document.getElementById("users");
+    if (existingUserList) existingUserList.remove();
+    if (viewYear !== 0) {
+        displayUsersByRank();
+    } else if (usernameString) {
+        let username = usernameString;
+        const filteredUsers = userList.filter(user => user.contentKey.toLowerCase().includes(username.toLowerCase()));
+        displayUsersByName(filteredUsers);
+    } else {
+        displayUsersByName(userList);
+    }
+}
+
 function displayUsersByName(users: ContentPair[]) {
     if (users.length < 10) {
         returnToTopArrow.classList.add("hide");
     } else {
         returnToTopArrow.classList.remove("hide");
     }
-    const heading = makeElement("div", "user-list-heading", null, null);
+
     const usernameHeading = makeElement("p", null, null, "Username");
     const yearsParticipatedHeading = makeElement("p", null, null, "Years Participated");
     heading.append(usernameHeading, yearsParticipatedHeading);
     const usersListElem = users.reduce((acc: HTMLElement, user: ContentPair) => {
-        const userRow = makeElement("div", user.contentKey, "user-row clickable", null);
+        const userRow = makeElement("div", user.contentKey, `user-row clickable ${yearColor}`, null);
         const username = makeElement("p", null, null, user.contentKey);
         const yearsParticipated = makeElement("p", null, null, user.contentValue);
         userRow.append(username, yearsParticipated);
@@ -55,18 +69,17 @@ function displayUsersByName(users: ContentPair[]) {
         acc.appendChild(userRow);
         return acc;
     }, makeElement("div", "users", null, null));
-    main.append(heading, usersListElem);
+    main.appendChild(usersListElem);
 }
 
 async function displayUsersByRank() {
     const userList = await getAllUserStatsForYear(viewYear);
-    const heading = makeElement("div", "user-list-heading", null, null);
     const usernameHeading = makeElement("p", null, null, "Username");
     const userRankingHeading = makeElement("p", null, null, "Pixels Placed");
     heading.append(usernameHeading, userRankingHeading);
     if (userList) {
         const usersListElem = userList.reduce((acc: HTMLElement, user: User) => {
-            const userRow = makeElement("div", user.username, "user-row clickable", null);
+            const userRow = makeElement("div", user.username, `user-row clickable ${yearColor}`, null);
             const username = makeElement("p", null, null, `${user.userRank}) ${user.username}`);
             const pixelsPlaced = makeElement("p", null, null, `${user.pixelCount}`);
             userRow.append(username, pixelsPlaced);
@@ -74,31 +87,29 @@ async function displayUsersByRank() {
             acc.appendChild(userRow);
             return acc;
         }, makeElement("div", "users", null, null));
-        main.append(heading, usersListElem);
+        main.appendChild(usersListElem);
     }
 }
 
 const userList: ContentPair[] = await getAllUsers();
 const filterRow = makeElement("div", "filter-users-row", null, null);
 const filterText = makeElement("p", null, null, "Filter by Year:");
-const all = makeElement("p", "all", "btn orange", "All Years");
-all.onclick = function() {navigateTo("/users")}
 filterRow.append(filterText);
-if (viewYear !== 0) {
-    filterRow.appendChild(all);
-}
 years.forEach((year: ContentPair) => {
     const yearButton = makeElement("p", year.contentKey, `btn ${year.contentValue}`, year.contentKey);
     if (parseInt(year.contentKey) === viewYear) yearButton.classList.add("active-btn");
-    yearButton.onclick = function () { navigateTo("/users", { params: { year: year.contentKey } }) }
+    yearButton.onclick = function () {
+        if (year.contentKey === "All Years") {
+            viewYear = 0;
+        } else {
+            viewYear = parseInt(year.contentKey);
+        }
+        yearColor = year.contentValue;
+        loadUserList();
+        //navigateTo("/users", { params: { year: year.contentKey } }) 
+    }
     if (year.contentKey !== "2026") filterRow.appendChild(yearButton);
 });
 main.appendChild(filterRow);
-if (viewYear !== 0) {
-    displayUsersByRank();
-} else if (usernameString) {
-    const filteredUsers = userList.filter(user => user.contentKey.toLowerCase().includes(usernameString.toLowerCase()));
-    displayUsersByName(filteredUsers);
-} else {
-    displayUsersByName(userList);
-}
+main.append(heading);
+loadUserList();

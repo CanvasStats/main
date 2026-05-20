@@ -1,20 +1,23 @@
 import { ContentPair, DrawParams, Pixel } from "../models";
-import { fetchHTML } from "../modules/utils";
+import { fetchHTML, getRandomColor } from "../modules/utils";
 
-const years: ContentPair[] = [
-    new ContentPair("2023", "azure"), 
-    new ContentPair("2024", "dark green"), 
-    new ContentPair("2025", "mauve"),
-    new ContentPair("2026", "orange")
-];
+const years: string[] = ["2023", "2024", "2025"];
 const yearCounts: ContentPair[] = [
-    new ContentPair("2025", "638"), 
-    new ContentPair("2024", "1912"), 
+    new ContentPair("2025", "638"),
+    new ContentPair("2024", "1912"),
     new ContentPair("2023", "2204")];
 const baseURL: string = "https://raw.githubusercontent.com/TheRealMonte/data-files/main";
 
-export function getYears(): ContentPair[] {
-    return years;
+export function getYears(includeAll: boolean): ContentPair[] {
+    const yearsToReturn: ContentPair[] = [];
+    if (includeAll) {
+        yearsToReturn.push(new ContentPair("All Years", getRandomColor(0, true)));
+    }
+    years.forEach((year: string, index: number) => {
+        yearsToReturn.push(new ContentPair(year, getRandomColor(index + 1, true)));
+        console.log(index);
+    });
+    return yearsToReturn;
 }
 
 export function getYearCounts(year: number) {
@@ -80,7 +83,7 @@ export async function getPixelsForDraw(params: DrawParams) {
                 pixels = pixels.filter(pixel => pixel['isUndo']);
             } else if (params["undo"] === false) {
                 pixels = pixels.filter(pixel => !pixel['isUndo']);
-            }  
+            }
         }
         if (params['color']) {
             pixels = pixels.filter(pixel => pixel['colorHex'] === params['color']);
