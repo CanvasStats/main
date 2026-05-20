@@ -24,6 +24,8 @@ if (years.length > 0) {
     yearColor = "white";
 }
 
+console.log(yearColor);
+
 await initializeApp("Users", "Users", true);
 
 const returnToTopArrow = document.getElementById("return-to-top") as HTMLElement;
@@ -100,6 +102,3 @@ if (viewYear !== 0) {
 } else {
     displayUsersByName(userList);
 }
-
-
-
