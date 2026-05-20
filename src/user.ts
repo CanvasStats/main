@@ -17,7 +17,7 @@ const statsContainer = makeElement("div", "stats-container", null, null) as HTML
 const mainLoader = addLoadingElement();
 
 let viewYear: number = 2025;
-let yearColor: string = "white";
+let yearColor: string = "";
 let username: string = "";
 
 const years = getYears();
@@ -32,6 +32,8 @@ if (years.length > 0) {
     } else {
         yearColor = years[years.length - 1].contentValue;
     }
+} else {
+    yearColor = "white";
 }
 
 await initializeApp("Users", usernameString!, true);
