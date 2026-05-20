@@ -14,17 +14,19 @@ const heading = makeElement("div", "user-list-heading", null, null);
 const urlParams = new URLSearchParams(window.location.search);
 let usernameString: string | null = urlParams.get('username');
 const yearString: string | null = urlParams.get('year');
-if (yearString) viewYear = parseInt(yearString);
-if (years.length > 0) {
-    const findYear = years.find(year => parseInt(year.contentKey) === viewYear);
-    if (findYear) {
-        yearColor = findYear.contentValue;
-    } else {
+if (yearString) {
+    const searchForYear = years.find(year => year.contentKey === yearString);
+    if (!searchForYear) {
+        viewYear = 0;
         yearColor = years[0].contentValue;
+    } else {
+        viewYear = parseInt(yearString);
+        yearColor = searchForYear.contentValue
     }
 } else {
-    yearColor = "white";
+    yearColor = years[0].contentValue
 }
+let showAll: boolean = true;
 
 await initializeApp("Users", "Users", true);
 const returnToTopArrow = document.getElementById("return-to-top") as HTMLElement;
@@ -98,16 +100,26 @@ filterRow.append(filterText);
 years.forEach((year: ContentPair) => {
     const yearButton = makeElement("p", year.contentKey, `btn ${year.contentValue}`, year.contentKey);
     if (parseInt(year.contentKey) === viewYear) yearButton.classList.add("active-btn");
+    if (showAll && year.contentKey === "All Years") yearButton.classList.add("active-btn")
+
     yearButton.onclick = function () {
         if (year.contentKey === "All Years") {
             viewYear = 0;
+            showAll = true;
         } else {
             viewYear = parseInt(year.contentKey);
+            showAll = false
         }
+
         yearColor = year.contentValue;
+        filterRow.querySelectorAll(".btn").forEach((btn) => {
+            btn.classList.remove("active-btn");
+        });
+        yearButton.classList.add("active-btn");
+
         loadUserList();
-        //navigateTo("/users", { params: { year: year.contentKey } }) 
     }
+
     if (year.contentKey !== "2026") filterRow.appendChild(yearButton);
 });
 main.appendChild(filterRow);

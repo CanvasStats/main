@@ -2,7 +2,7 @@ import { initializeApp } from "./main";
 import { DrawParams, type Pixel } from "./models";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, createButton, getHexForColor, makeElement } from "./modules/utils";
-import { getPixelsForDraw } from "./services/canvas.service";
+import { getPixelsForDraw, getYears } from "./services/canvas.service";
 
 const main = document.querySelector('main') as HTMLElement;
 const drawHeader = document.getElementById("draw-header") as HTMLElement;
@@ -22,8 +22,18 @@ const undoString = urlParams.get('undo');
 const isTopString = urlParams.get('isTop');
 const specialString = urlParams.get('special');
 
+const years = getYears(false);
+let viewYear: number = 0;
+if (yearString) {
+    const searchForYear = years.find(year => year.contentKey === yearString);
+    if (!searchForYear) {
+        console.error(`${yearString} is not a valid year`);
+        viewYear = parseInt(years[years.length - 1].contentKey);
+    } else {
+        viewYear = parseInt(yearString);
+    }
+}
 
-let viewYear: number = yearString? parseInt(yearString) : 2025;
 let canvasWidth: number = 500;
 let canvasHeight: number = 500;
 let username: string = "";

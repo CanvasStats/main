@@ -1,12 +1,20 @@
 import { loadFooter, loadHeader } from "./modules/templates";
+import { getYears } from "./services/canvas.service";
 
 let year: number = 2026;
 // Get the year from the url
 const urlParams = new URLSearchParams(window.location.search);
 const yearString: string | null = urlParams.get('year');
+const years = getYears(false);
 //Set the year
 if (yearString) {
-  year = isNaN(parseInt(yearString)) ? 2025 : parseInt(yearString);
+  const searchForYear = years.find(year => year.contentKey === yearString);
+  if (!searchForYear) {
+    console.error(`${yearString} is not a valid year`);
+    //year = parseInt(years[years.length - 1].contentKey);
+  } else {
+    year = isNaN(parseInt(yearString)) ? parseInt(years[years.length - 1].contentKey) : parseInt(yearString);
+  }
 }
 let search: string | null = urlParams.get('search');
 

@@ -45,6 +45,12 @@ if (usernameString) {
         if (yearsUserParticipated.includes(parseInt(yearString))) {
             viewYear = parseInt(yearString);
         } else {
+            const searchForYear = years.find(year => parseInt(year.contentKey) === viewYear);
+            if (!searchForYear) {
+                console.error(`${viewYear} is not a valid year`);
+            } else {
+                console.warn(`${username} did not participate in ${yearString}`)
+            }
             viewYear = yearsUserParticipated[yearsUserParticipated.length - 1];
         }
     } else {
