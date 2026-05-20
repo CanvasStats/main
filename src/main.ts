@@ -18,6 +18,7 @@ export function getSearchString() {
   return search;
 }
 
+//Adding comment to force redeploy
 export async function initializeApp(parentPage: string, currentPage: string, showSearch: boolean) {
   if (currentPage !== "") {
     //Set the page title
