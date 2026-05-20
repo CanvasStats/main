@@ -1,0 +1,12 @@
+#chart-tooltip {
+    padding: 5px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: var(--color-background);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-hover);
+    cursor: pointer;
+    text-decoration: none;
+    width: fit-content;
+}

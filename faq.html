@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta name="color-scheme" content="light dark">
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Stats</title>
+  <meta name="theme-color" content="#630d83">
+  <link rel="stylesheet" href="src/css/style.css">
+  <link rel="stylesheet" href="src/css/d3.css">
+</head>
+
+<body>
+  <a href="#maincontent" class="skip-link">Skip to main content</a>
+  <header></header>
+  <form id="search"></form>
+  <main id="maincontent">
+    <h1>Frequently Asked Questions</h1>
+    <h2>Q: "I used a different account in 2023/2024, can you link my accounts so it shows I participated every year?"</h2>
+    <p>A: User rankings and stats are generated based on username and the database has no way of knowing that 2 different accounts are the same person. If you want, you can choose which username you want to keep, then we will merge the stats and delete the other account from the database. Message <a href="https://sh.itjust.works/u/the_real_monte">@the_real_monte</a> with both usernames and which one you want to keep. We will send both a message to both accounts to verify you own both. If the instance has shut down, verification will not be necessary as long as the usernames match.</p>
+    <hr>
+    <h2>Q: "How did you get the data for the stats?"</h2>
+    <p>A: The database log gets posted on Lemmy after the event has ended. We use sqlite and python to generate the statistics. The stats are stored in csv files on Github. The website runs on Angular and is hosted on GitHub Pages.</p>
+    <hr>
+    <h2>Q: "Can I suggest a feature for the site or request an image that isn't on the site?"</h2>
+    <p>A: Sure! Just send a message to <a href="https://sh.itjust.works/u/the_real_monte">@the_real_monte</a> with your suggestion/request and we will try to add it to the site.</p>
+    <hr>
+    <h2>Q: "I have a question that isn't on this page."</h2>
+    <p>A: Send your question to <a href="https://sh.itjust.works/u/the_real_monte">@the_real_monte</a></p>
+  </main>
+  <footer></footer>
+  <script type="module" src="/src/faq"></script>
+</body>
+</html>
