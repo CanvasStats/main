@@ -4,7 +4,6 @@ export const ALL_APP_PATHS = [
   '/users',
   '/user',
   '/faq',
-  '/advanced-search',
   '/draw'
 ] as const;
 
