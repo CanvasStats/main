@@ -15,7 +15,6 @@ export function getYears(includeAll: boolean): ContentPair[] {
     }
     years.forEach((year: string, index: number) => {
         yearsToReturn.push(new ContentPair(year, getRandomColor(index + 1, true)));
-        console.log(index);
     });
     return yearsToReturn;
 }

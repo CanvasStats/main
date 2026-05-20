@@ -42,7 +42,11 @@ if (usernameString) {
     const yearsUserParticipated = await getYearsForUsername(usernameString);
     if (yearsUserParticipated.length === 0) navigateTo("/users");
     if (yearString) {
-        viewYear = parseInt(yearString);
+        if (yearsUserParticipated.includes(parseInt(yearString))) {
+            viewYear = parseInt(yearString);
+        } else {
+            viewYear = yearsUserParticipated[yearsUserParticipated.length - 1];
+        }
     } else {
         viewYear = yearsUserParticipated[yearsUserParticipated.length - 1];
     }
