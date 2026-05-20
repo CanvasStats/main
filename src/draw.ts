@@ -71,18 +71,19 @@ if (sentFrom) {
         headerButtons.appendChild(returnToUserButton);
         drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
         filename = `${username}-pixels-${viewYear}`
-    } else if (sentFrom === "search") {
-        //Create a button to return to the search page
-        const returnToUserButton = createButton('blue', 'Back to search', "arrow_back");
-        returnToUserButton.addEventListener('click', () => navigateTo('/advanced-search'));
-        headerButtons.appendChild(returnToUserButton);
-        if (username) {
-            drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
-        } else {
-            drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
-        }
-        filename = `${username}-pixels-${viewYear}`
     }
+    //  else if (sentFrom === "search") {
+    //     //Create a button to return to the search page
+    //     const returnToUserButton = createButton('blue', 'Back to search', "arrow_back");
+    //     returnToUserButton.addEventListener('click', () => navigateTo('/advanced-search'));
+    //     headerButtons.appendChild(returnToUserButton);
+    //     if (username) {
+    //         drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
+    //     } else {
+    //         drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
+    //     }
+    //     filename = `${username}-pixels-${viewYear}`
+    // }
 }
 
 drawHeader.append(headerButtons, drawTitle);
