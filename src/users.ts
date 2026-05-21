@@ -10,6 +10,10 @@ let yearColor: string = "";
 const years = getYears(true);
 const main = document.querySelector('main') as HTMLElement;
 const heading = makeElement("div", "user-list-heading", null, null);
+let userList2023: User[] | undefined = await getAllUserStatsForYear(2023);
+let userList2024: User[] | undefined = await getAllUserStatsForYear(2024);
+let userList2025: User[] | undefined = await getAllUserStatsForYear(2025);
+let AllUsersList: ContentPair[] | null = await getAllUsers();
 
 const urlParams = new URLSearchParams(window.location.search);
 let usernameString: string | null = urlParams.get('username');
@@ -43,12 +47,12 @@ function loadUserList() {
     if (existingUserList) existingUserList.remove();
     if (viewYear !== 0) {
         displayUsersByRank();
-    } else if (usernameString) {
+    } else if (usernameString && AllUsersList) {
         let username = usernameString;
-        const filteredUsers = userList.filter(user => user.contentKey.toLowerCase().includes(username.toLowerCase()));
+        const filteredUsers = AllUsersList.filter(user => user.contentKey.toLowerCase().includes(username.toLowerCase()));
         displayUsersByName(filteredUsers);
     } else {
-        displayUsersByName(userList);
+        if (AllUsersList) displayUsersByName(AllUsersList);
     }
 }
 
@@ -75,7 +79,21 @@ function displayUsersByName(users: ContentPair[]) {
 }
 
 async function displayUsersByRank() {
-    const userList = await getAllUserStatsForYear(viewYear);
+    let userList: User[] | undefined = undefined;
+    switch(viewYear) {
+        case 2023: {
+            userList = userList2023;
+            break;
+        }
+        case 2024: {
+            userList = userList2024;
+            break;
+        }
+        case 2025: {
+            userList = userList2025;
+            break;
+        }
+    }
     const usernameHeading = makeElement("p", null, null, "Username");
     const userRankingHeading = makeElement("p", null, null, "Pixels Placed");
     heading.append(usernameHeading, userRankingHeading);
@@ -93,7 +111,6 @@ async function displayUsersByRank() {
     }
 }
 
-const userList: ContentPair[] = await getAllUsers();
 const filterRow = makeElement("div", "filter-users-row", null, null);
 const filterText = makeElement("p", null, null, "Filter by Year:");
 filterRow.append(filterText);
@@ -105,6 +122,7 @@ years.forEach((year: ContentPair) => {
     yearButton.onclick = function () {
         if (year.contentKey === "All Years") {
             viewYear = 0;
+            usernameString = null;
             showAll = true;
         } else {
             viewYear = parseInt(year.contentKey);
@@ -125,3 +143,6 @@ years.forEach((year: ContentPair) => {
 main.appendChild(filterRow);
 main.append(heading);
 loadUserList();
+const loading = document.getElementById("loading");
+if (loading) loading.remove();
+main.classList.remove("hide");
