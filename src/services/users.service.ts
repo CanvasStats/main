@@ -1,48 +1,55 @@
-import { type ColorCount, type ContentPair, type User, DrawParams, type JsonObject, type ColorsCounts } from "../models";
+import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks } from "../models";
 import { fetchHTML, getHexForColor } from "../modules/utils";
 import { getYearCounts, getPixelsForDraw } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
-export async function getAllUsers(): Promise<ContentPair[]> {
+export async function getAllUsers(): Promise<UserRanks[]> {
     try {
-        const userCSVData = await fetchHTML(`${baseURL}/allUsers.csv`);
+        const userCSVData = await fetchHTML(`${baseURL}/allUserRanking.csv`);
         if (userCSVData) {
             //Split the csv file into lines
             const lines = userCSVData.trim().split('\n');
-            //Define the column headers
-            const header = lines[0].split(',').map(h => h.trim());
-            const usernameIndex = header.indexOf('username');
-            const canvas2023Index = header.indexOf('canvas2023');
-            const canvas2024Index = header.indexOf('canvas2024');
-            const canvas2025Index = header.indexOf('canvas2025');
-            //Create the list of users
-            const userList: ContentPair[] | null = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',');
-                if (values.length === header.length) {
-                    const user: string = values[usernameIndex]?.trim();
-                    let yearsParticipated = 0
-                    if (+values[canvas2023Index]?.trim() == 1) yearsParticipated += 1;
-                    if (+values[canvas2024Index]?.trim() == 1) yearsParticipated += 1;
-                    if (+values[canvas2025Index]?.trim() == 1) yearsParticipated += 1;
-                    userList.push({contentKey: user, contentValue: `${yearsParticipated}`});
-                } else {
-                    console.warn(`Skipping row ${i + 1} due to incorrect number of columns.`);
-                }
+            const headers = lines.shift();
+            if (!headers) return [];
+
+            const users: UserRanks[] = [];
+
+            for (const line of lines) {
+                // Split by comma to get individual values
+                const columns = line.split(',');
+                // Ensure the row has the expected number of columns
+                if (columns.length < 5) continue;
+                const [rawInstanceId, username, rawRank2023, rawPixels2023, rawRank2024, rawPixels2024, rawRank2025, rawPixels2025] = columns;
+                // Parse integers, or fall back to null if the CSV column is empty
+                const instance_id = parseInt(rawInstanceId, 10);
+                const rank_2023 = rawRank2023.trim() === '' ? null : parseInt(rawRank2023, 10);
+                const pixels_2023 = rawPixels2023.trim() === '' ? null : parseInt(rawPixels2023, 10);
+                const rank_2024 = rawRank2024.trim() === '' ? null : parseInt(rawRank2024, 10);
+                const pixels_2024 = rawPixels2024.trim() === '' ? null : parseInt(rawPixels2024, 10);
+                const rank_2025 = rawRank2025.trim() === '' ? null : parseInt(rawRank2025, 10);
+                const pixels_2025 = rawPixels2025.trim() === '' ? null : parseInt(rawPixels2025, 10);
+                users.push(new UserRanks(
+                    instance_id,
+                    username.trim(),
+                    rank_2023,
+                    pixels_2023,
+                    rank_2024,
+                    pixels_2024,
+                    rank_2025,
+                    pixels_2025
+                ));
             }
-            return userList;
+            return users;
         } else {
-            throw new Error("Could not fetch users csv");
-            return [];
+            throw new Error("Could not get users. Please try reloading the page");
         }
     } catch (error: any) {
-        console.error(`Error creating user list: ${error}`);
-        return [];
+        throw new Error("Could not get users. Please try reloading the page");
     }
 }
 
-export async function getAllUserStatsForYear(year: number) {
+async function getAllUserStatsForYear(year: number) {
     try {
         const allUserCSVData = await fetchHTML(`${baseURL}/${year}/users.csv`);
         if (allUserCSVData) {
@@ -282,7 +289,7 @@ export async function getPixelsPerHourForUser(year: number, username: string) {
     const pixelsForYear = await getPixelsForDraw(new DrawParams(year, null, null, null, null, null));
     if (pixelsForYear) {
         const firstPixel = pixelsForYear[0];
-        const lastPixel = pixelsForYear[pixelsForYear.length-1];
+        const lastPixel = pixelsForYear[pixelsForYear.length - 1];
         const pixelsForUser = pixelsForYear.filter(pixel => pixel['username'] === username);
         if (pixelsForUser.length === 0) return [];
         const sortedPixels = [...pixelsForUser].sort(
@@ -313,39 +320,11 @@ export async function getPixelsPerHourForUser(year: number, username: string) {
 }
 
 export async function getYearsForUsername(username: string) {
-    try {
-        const userCSVData = await fetchHTML(`${baseURL}/allUsers.csv`);
-        if (userCSVData) {
-            //Split the csv file into lines
-            const lines = userCSVData.trim().split('\n');
-            //Define the column headers
-            const header = lines[0].split(',').map(h => h.trim());
-            const usernameIndex = header.indexOf('username');
-            const canvas2023Index = header.indexOf('canvas2023');
-            const canvas2024Index = header.indexOf('canvas2024');
-            const canvas2025Index = header.indexOf('canvas2025');
-            //Create the list of users
-            const years: number[] = []
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',');
-                if (values.length === header.length) {
-                    const user: string = values[usernameIndex]?.trim();
-                    if (user === username) {
-                        if (+values[canvas2023Index]?.trim() == 1) years.push(2023);
-                        if (+values[canvas2024Index]?.trim() == 1) years.push(2024);
-                        if (+values[canvas2025Index]?.trim() == 1) years.push(2025);
-                    }
-                } else {
-                    console.warn(`Skipping row ${i + 1} due to incorrect number of columns.`);
-                }
-            }
-            return years;
-        } else {
-            throw new Error("Could not fetch users csv");
-            return [];
-        }
-    } catch (error: any) {
-        console.error(`Error creating user list: ${error}`);
-        return [];
+    const allUsers = await getAllUsers();
+    const user = allUsers.find(user => user.username.toLowerCase() === username.toLowerCase());
+    if (user) {
+        return user.yearParticipated();
+    } else {
+        throw new Error("Could not find user");
     }
 }
