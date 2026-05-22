@@ -11,7 +11,7 @@ const baseURL: string = "https://raw.githubusercontent.com/TheRealMonte/data-fil
 export function getYears(includeAll: boolean): ContentPair[] {
     const yearsToReturn: ContentPair[] = [];
     if (includeAll) {
-        yearsToReturn.push(new ContentPair("All Years", getRandomColor(0, true)));
+        yearsToReturn.push(new ContentPair("All", getRandomColor(0, true)));
     }
     years.forEach((year: string, index: number) => {
         yearsToReturn.push(new ContentPair(year, getRandomColor(index + 1, true)));

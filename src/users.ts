@@ -5,7 +5,7 @@ import { getRandomColor, makeElement } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 import { getAllUsers } from "./services/users.service";
 
-let viewYear: string = "All Years";
+let viewYear: string = "All";
 let yearColor: string = "";
 const years = getYears(true);
 const main = document.querySelector('main') as HTMLElement;
@@ -19,7 +19,7 @@ const yearString: string | null = urlParams.get('year');
 if (yearString) {
     const searchForYear = years.find(year => year.contentKey === yearString);
     if (!searchForYear) {
-        viewYear = "All Years";
+        viewYear = "All";
         yearColor = years[0].contentValue;
     } else {
         viewYear = yearString;
@@ -45,7 +45,7 @@ function loadYearData(viewYear: string): UserItem[] {
     if (userList) {
         const newList: UserItem[] = userList.reduce((acc: UserItem[], user: UserRanks) => {
             let newUser: UserItem = { username: "" }
-            if (viewYear === "All Years") {
+            if (viewYear === "All") {
                 newUser = { username: user.username, yearsParticipated: user.numYearsParticipated() }
             } else {
                 switch (viewYear) {
@@ -63,7 +63,7 @@ function loadYearData(viewYear: string): UserItem[] {
             acc.push(newUser);
             return acc;
         }, []);
-        if (viewYear === "All Years") {
+        if (viewYear === "All") {
             newList.sort((a, b) => a.username.localeCompare(b.username));
         } else {
             newList.sort((a, b) => {
@@ -87,10 +87,10 @@ function loadUserList() {
     if (usernameString) {
         const username = usernameString.toLowerCase();
         userList = userList.filter(user => user.username.toLowerCase().includes(username));
-        viewYear = "All Years";
+        viewYear = "All";
     }
 
-    if (viewYear === "All Years") {
+    if (viewYear === "All") {
         const usernameHeading = makeElement("p", null, null, "Username");
         const yearsParticipatedHeading = makeElement("p", null, null, "Years Participated");
         heading.append(usernameHeading, yearsParticipatedHeading);
@@ -119,15 +119,15 @@ function loadUserList() {
         }
         userRow.append(usernameP, statP);
         userRow.onclick = function () { navigateTo("/user", { params: { username: user.username } }) }
-        if (viewYear !== "All Years" && user.pixelsPlaced) acc.appendChild(userRow);
-        if (viewYear === "All Years") acc.appendChild(userRow);
+        if (viewYear !== "All" && user.pixelsPlaced) acc.appendChild(userRow);
+        if (viewYear === "All") acc.appendChild(userRow);
         return acc;
     }, makeElement("div", "users", null, null));
     main.appendChild(usersListElem);
 }
 
 const filterRow = makeElement("div", "filter-users-row", null, null);
-const filterText = makeElement("p", null, null, "Filter by Year:");
+const filterText = makeElement("p", "filter-users-label", null, "Filter by Year:");
 filterRow.append(filterText);
 years.forEach((year: ContentPair) => {
     const yearButton = makeElement("p", year.contentKey, `btn ${year.contentValue}`, year.contentKey);

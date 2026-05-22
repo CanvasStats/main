@@ -573,6 +573,7 @@ section {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 #filter-users-row p {
@@ -655,6 +656,16 @@ footer {
 /*========================================================
                   Media Breakpoints
   ========================================================*/
+@media (721px <= width <= 1150px) {
+    header {
+        height: 150px;
+        flex-wrap: wrap;
+    }
+    #logo {
+        width: 100vw;
+        text-align: center;
+    }
+}
 @media only screen and (max-width: 720px) {
     #drawHeader {
         flex-direction: column;
@@ -708,11 +719,16 @@ footer {
     }
 
     [aria-current]:not([aria-current="false"]) {
-    border: 3px solid var(--accent);
-}
+        border: 3px solid var(--accent);
+    }
 
     #search {
-        margin: 0 10px;
+        margin: 0 10px 0 15px;
+    }
+
+    #filter-users-label {
+        width: 100vw !important;
+        text-align: center;
     }
 
     input[type="text"],
