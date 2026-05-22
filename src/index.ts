@@ -1,5 +1,5 @@
 import { getYear, initializeApp } from "./main";
-import { ContentPair, type ColorCount } from "./models";
+import { ContentPair, type ColorCount, type JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
 import { addLoadingElement, comingSoonBlock, getRandomColor, makeElement } from "./modules/utils";
@@ -13,6 +13,8 @@ const main = document.querySelector('main') as HTMLElement;
 const mainLoader = addLoadingElement();
 const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
 const loading = document.getElementById("loading");
+
+const yearDataCache: Record<string, JsonObject | undefined> = {};
 
 let countdownInterval: number | null = null;
 
@@ -44,6 +46,14 @@ const yearSelector = years.reduce((acc: HTMLElement, year: ContentPair) => {
     return acc;
 }, makeElement("div", "year-selector", `${yearColor}`, null));
 
+async function getJsonBlocks(year: number) {
+    if (yearDataCache[year]) return yearDataCache[year];
+    const response = await fetch(`https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main/${year}/overview${year}.json`);
+    const yearData = await response.json();
+    yearDataCache[year] = yearData;
+    return yearDataCache[year];
+}
+
 main.append(yearSelector);
 if (loading) loading.remove();
 main.classList.remove("hide");
@@ -60,12 +70,11 @@ async function updateStats() {
     if (viewYear === 2026) {
         comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z");
     } else {
-        const response = await fetch(`https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main/${viewYear}/overview${viewYear}.json`);
-        const yearData = await response.json();
+        
+        const yearData = await getJsonBlocks(viewYear);
         let colorCounts: ColorCount[] = [];
         let pixelPerMinuteURL: string = "";
-        
-        yearData.blocks.forEach((block: any) => {
+        if (yearData) yearData.blocks.forEach((block: any) => {
             const structure = getBlockStructure(block, viewYear);
             if (block.type === "color-grid") {
                 colorCounts = mapColorCountJsonToInterface(block.data);
