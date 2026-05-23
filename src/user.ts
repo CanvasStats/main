@@ -3,7 +3,7 @@ import type { ColorCount, ContentPair, JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
-import { addLoadingElement, makeElement } from "./modules/utils";
+import { addLoadingElement, clearMessages, createMessage, makeElement, storeMessage } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 import { GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
 
@@ -39,8 +39,13 @@ if (years.length > 0) {
 await initializeApp("Users", usernameString!, true);
 if (usernameString) {
     username = usernameString;
-    const yearsUserParticipated = await getYearsForUsername(usernameString);
-    if (yearsUserParticipated.length === 0) navigateTo("/users");
+    let yearsUserParticipated: number[] = []
+    try {
+        yearsUserParticipated = await getYearsForUsername(usernameString);
+    } catch (error: any) {
+        storeMessage(`${usernameString} not found`, "main-message", "error");
+        navigateTo("/users");
+    }
     if (yearString) {
         if (yearsUserParticipated.includes(parseInt(yearString))) {
             viewYear = parseInt(yearString);
@@ -49,7 +54,7 @@ if (usernameString) {
             if (!searchForYear) {
                 console.error(`${viewYear} is not a valid year`);
             } else {
-                console.warn(`${username} did not participate in ${yearString}`)
+                createMessage(`${username} did not participate in ${yearString}`, "main-message", "warning");
             }
             viewYear = yearsUserParticipated[yearsUserParticipated.length - 1];
         }
@@ -72,6 +77,7 @@ if (usernameString) {
                 });
                 yearButton.classList.add("active-year");
                 statsContainer.className = year.contentValue;
+                clearMessages();
                 await updateStats();
             };
 

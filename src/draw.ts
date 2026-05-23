@@ -1,7 +1,7 @@
 import { initializeApp } from "./main";
 import { DrawParams, type Pixel } from "./models";
 import { navigateTo } from "./modules/navigate";
-import { addLoadingElement, createButton, getHexForColor, makeElement } from "./modules/utils";
+import { addLoadingElement, createButton, createMessage, getHexForColor, makeElement } from "./modules/utils";
 import { getPixelsForDraw, getYears } from "./services/canvas.service";
 
 const main = document.querySelector('main') as HTMLElement;
@@ -27,7 +27,6 @@ let viewYear: number = 0;
 if (yearString) {
     const searchForYear = years.find(year => year.contentKey === yearString);
     if (!searchForYear) {
-        console.error(`${yearString} is not a valid year`);
         viewYear = parseInt(years[years.length - 1].contentKey);
     } else {
         viewYear = parseInt(yearString);
@@ -119,7 +118,6 @@ if (viewYear === 2023) {
 }
 
 if (pixelsToDraw.length > 0) {
-    console.log(`Got ${pixelsToDraw.length} pixels`);
     canvasElement.setAttribute('width', `${canvasWidth}`);
     canvasElement.setAttribute('height', `${canvasHeight}`);
     if (context) {
@@ -154,7 +152,7 @@ if (pixelsToDraw.length > 0) {
     headerButtons.appendChild(downloadButton);
 } else {
     drawTitle.textContent = "You have filtered out all the pixels!";
-    console.log("no pixels")
+    canvasElement.classList.add("hide");
 }
 mainLoader.classList.add("hide");
 
@@ -166,7 +164,7 @@ function downloadImage() {
         a.download = filename + '.png';
         a.click();
     } catch (error) {
+        createMessage(`Error occurred while downloading ${filename}.png. Please try reloading the page`, "main-message", "error");
         console.error("Error during download:", error);
-        console.error(`Error occurred while downloading ${filename}.png`);
     }
 }

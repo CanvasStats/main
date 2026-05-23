@@ -1,5 +1,5 @@
 import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks } from "../models";
-import { fetchHTML, getHexForColor } from "../modules/utils";
+import { createMessage, fetchHTML, getHexForColor } from "../modules/utils";
 import { getYearCounts, getPixelsForDraw } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
@@ -84,7 +84,7 @@ async function getAllUserStatsForYear(year: number) {
             return userList;
         }
     } catch (error) {
-        console.error(`Error getting all user stats for ${year}: ${error}`);
+        throw new Error(`Error getting all user stats for ${year}: ${error}`)
     }
 }
 
@@ -237,7 +237,8 @@ export async function getColorCountsForYear(year: number) {
         }
         return null
     } catch (error: any) {
-        console.error(`Failed to fetch color counts: ${error}`);
+        createMessage("Error: failed to load color data. Please try reloading the page", "main-message", "error");
+        console.error(`Reason for failed fetch: ${error}`);
         return null;
     }
 }

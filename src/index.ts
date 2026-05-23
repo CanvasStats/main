@@ -2,7 +2,7 @@ import { getYear, initializeApp } from "./main";
 import { ContentPair, type ColorCount, type JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
-import { addLoadingElement, comingSoonBlock, getRandomColor, makeElement } from "./modules/utils";
+import { addLoadingElement, clearMessages, comingSoonBlock, getRandomColor, makeElement } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 
 let viewYear: number = 2026;
@@ -39,6 +39,7 @@ const yearSelector = years.reduce((acc: HTMLElement, year: ContentPair) => {
         });
         yearButton.classList.add("active-year");
         statsContainer.className = year.contentValue;
+        clearMessages();
         await updateStats();
     };
 

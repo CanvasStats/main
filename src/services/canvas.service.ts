@@ -1,5 +1,5 @@
 import { ContentPair, DrawParams, Pixel } from "../models";
-import { fetchHTML, getRandomColor } from "../modules/utils";
+import { createMessage, fetchHTML, getRandomColor } from "../modules/utils";
 
 const years: string[] = ["2023", "2024", "2025"];
 const yearCounts: ContentPair[] = [
@@ -65,7 +65,8 @@ export async function getPixelDataForYear(year: number) {
         }
         return null;
     } catch (error: any) {
-        console.log(`Failed to fetch pixel data: ${error}`);
+        createMessage("Error loading pixel data. Please try reloading the page", "main-message", "error");
+        console.log(`Reason for failed fetch: ${error}`);
         return null;
     }
 }

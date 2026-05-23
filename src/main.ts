@@ -1,4 +1,5 @@
 import { loadFooter, loadHeader } from "./modules/templates";
+import { createMessage } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 
 let year: number = 2026;
@@ -10,8 +11,7 @@ const years = getYears(false);
 if (yearString) {
   const searchForYear = years.find(year => year.contentKey === yearString);
   if (!searchForYear) {
-    console.error(`${yearString} is not a valid year`);
-    //year = parseInt(years[years.length - 1].contentKey);
+    createMessage(`Error: ${yearString} is not a valid year`, "main-message", "error");
   } else {
     year = isNaN(parseInt(yearString)) ? parseInt(years[years.length - 1].contentKey) : parseInt(yearString);
   }
@@ -49,6 +49,13 @@ export async function initializeApp(parentPage: string, currentPage: string, sho
   header.classList.remove('hide');
   if (search) {
     search.classList.remove('hide');
+  }
+
+  const storedMessageString = sessionStorage.getItem("message");
+  if (storedMessageString) {
+    const storedMessage = JSON.parse(storedMessageString);
+    createMessage(storedMessage['message'], storedMessage['messageContainer'], storedMessage['icon']);
+    sessionStorage.removeItem("message");
   }
 
 }

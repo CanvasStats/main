@@ -83,7 +83,6 @@ function loadUserList() {
     const existingUserList = document.getElementById("users");
     if (existingUserList) existingUserList.remove();
     let userList = loadYearData(viewYear);
-    console.log(userList);
     if (usernameString) {
         const username = usernameString.toLowerCase();
         userList = userList.filter(user => user.username.toLowerCase().includes(username));

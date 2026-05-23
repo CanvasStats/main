@@ -305,3 +305,76 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
   externalLinksArticle.append(externalLinksIcon, externalLinksInfo);
   statsContainer.appendChild(externalLinksArticle);
 }
+
+
+class Message {
+    public message: string;
+    public messageContainer: string;
+    public icon: string;
+    constructor(
+        message: string,
+        messageContainer: string,
+        icon: string
+    ) {
+        this.message = message;
+        this.messageContainer = messageContainer;
+        this.icon = icon;
+    }
+}
+
+export function createMessage(message: string, location: string, type: string) {
+  clearMessages();
+  const body = document.querySelector("body") as HTMLElement;
+  let messageWrapper = makeElement("div", null, "message-wrapper", null)
+  if (location === "main-message") {
+    messageWrapper = makeElement("div", "main-message", "message-wrapper", null) as HTMLElement;
+  }
+  const messageDiv = document.createElement("div");
+  if (type === "check_circle") {
+    messageDiv.setAttribute("class", "success message");
+    messageDiv.setAttribute("aria-live", "polite");
+  } else if (type === "error") {
+    messageDiv.setAttribute("class", "error message");
+    messageDiv.setAttribute("role", "alert");
+    console.error(message);
+  } else if (type === "delete" || type === "warning") {
+    messageDiv.setAttribute("class", "warn message");
+    messageDiv.setAttribute("aria-live", "polite");
+    console.warn(message);
+  } else {
+    messageDiv.setAttribute("class", "info message");
+    messageDiv.setAttribute("aria-live", "polite");
+  }
+  const icon = document.createElement("span");
+  icon.setAttribute("class", "material-symbols-outlined");
+  const iconName = document.createTextNode(type);
+  icon.appendChild(iconName);
+  messageDiv.appendChild(icon);
+  const messageText = document.createTextNode(message);
+  messageDiv.appendChild(messageText);
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  const closeIcon = makeElement("span", null, "material-symbols-outlined", "close");
+  closeButton.appendChild(closeIcon);
+  closeButton.addEventListener("click", () => (messageWrapper.innerHTML = ""));
+  messageDiv.appendChild(closeButton);
+  messageWrapper.appendChild(messageDiv);
+  body.prepend(messageWrapper);
+}
+
+export function clearMessages() {
+  const messageWrappers = document.getElementsByClassName("message-wrapper");
+  for (const messageWrapper of messageWrappers) {
+    messageWrapper.innerHTML = "";
+  }
+}
+
+export function storeMessage(
+  message: string,
+  messageContainer: string,
+  icon: string,
+) {
+  clearMessages();
+  const messageToStore = new Message(message, messageContainer, icon);
+  sessionStorage.setItem("message", JSON.stringify(messageToStore));
+}
