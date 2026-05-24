@@ -1,6 +1,6 @@
 import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks } from "../models";
 import { createMessage, fetchHTML, getHexForColor } from "../modules/utils";
-import { getYearCounts, getPixelsForDraw } from "./canvas.service";
+import { getYearCounts, getPixelsForDraw, countUsersFinalPixels } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
@@ -90,9 +90,11 @@ async function getAllUserStatsForYear(year: number) {
 
 export async function getUserStats(username: string, year: number) {
     const allUsersData: User[] | undefined = await getAllUserStatsForYear(year);
-    const totalUsers = getYearCounts(year);
+    const yearCounts = getYearCounts(year);
+    console.log(yearCounts)
     if (allUsersData) {
         const user: User | undefined = allUsersData.find(user => user['username'] === username);
+        const topCount = await countUsersFinalPixels(username, year)
         if (user) {
             let userJson: JsonObject = {
                 username: username,
@@ -103,7 +105,7 @@ export async function getUserStats(username: string, year: number) {
                         layout: "left",
                         icon: "leaderboard",
                         content: [
-                            `You ranked ${user['userRank']} out of ${totalUsers} users in ${year}`
+                            `You ranked ${user['userRank']} out of ${yearCounts[0]['contentValue']} users in ${year}`
                         ]
                     },
                     {
@@ -128,9 +130,17 @@ export async function getUserStats(username: string, year: number) {
                             `You placed ${user['pixelCount']} pixels throughout the event`
                         ]
                     },
-                    {
+                     {
                         type: "standard",
                         layout: "left",
+                        icon: "arrow_shape_up_stack_2",
+                        content: [
+                            `${topCount} of your pixels made it to the final image at the end of the event`
+                        ]
+                    },
+                    {
+                        type: "standard",
+                        layout: "right",
                         icon: "kid_star",
                         content: [
                             `The coordinate you placed the most pixels on was (${user['xCord']}, ${user['yCord']}) - ${user['cordCount']} times (including the pixels you deleted)`
@@ -143,7 +153,7 @@ export async function getUserStats(username: string, year: number) {
                     },
                     {
                         type: "button-group",
-                        layout: "left",
+                        layout: "right",
                         title: "View your pixels placed in 2025",
                         icon: "dashboard_customize",
                         buttons: [

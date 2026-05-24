@@ -2,10 +2,16 @@ import { ContentPair, DrawParams, Pixel } from "../models";
 import { createMessage, fetchHTML, getRandomColor } from "../modules/utils";
 
 const years: string[] = ["2023", "2024", "2025"];
-const yearCounts: ContentPair[] = [
+const yearUserCounts: ContentPair[] = [
     new ContentPair("2025", "638"),
     new ContentPair("2024", "1912"),
-    new ContentPair("2023", "2204")];
+    new ContentPair("2023", "2204")
+];
+const yearPixelCounts: ContentPair[] = [
+    new ContentPair("2025", "308439"),
+    new ContentPair("2024", "642643"),
+    new ContentPair("2023", "628416")
+];
 const baseURL: string = "https://raw.githubusercontent.com/TheRealMonte/data-files/main";
 
 export function getYears(includeAll: boolean): ContentPair[] {
@@ -19,10 +25,13 @@ export function getYears(includeAll: boolean): ContentPair[] {
     return yearsToReturn;
 }
 
-export function getYearCounts(year: number) {
-    const yearCount: ContentPair | undefined = yearCounts.find(yearCount => yearCount['contentKey'] === year.toString());
-    if (yearCount) return yearCount['contentValue'];
-    return 0;
+export function getYearCounts(year: number): ContentPair[] {
+    const counts: ContentPair[] = []
+    const yearUserCount: ContentPair | undefined = yearUserCounts.find(userCount => userCount['contentKey'] === year.toString());
+    const yearPixelCount: ContentPair | undefined = yearPixelCounts.find(pixelCount => pixelCount['contentKey'] === year.toString());
+    if (yearUserCount) counts.push(yearUserCount);
+    if (yearPixelCount) counts.push(yearPixelCount);
+    return counts;
 }
 
 export async function getPixelDataForYear(year: number) {
@@ -104,4 +113,12 @@ export async function getPixelsForDraw(params: DrawParams) {
     } else {
         return null;
     }
+}
+
+export async function countUsersFinalPixels(username: string, year: number): Promise<number> {
+    const finalPixels = await getPixelsForDraw(new DrawParams(year, username, null, null, null, true));
+    if (finalPixels) {
+        return finalPixels.length;
+    }
+    return 0;
 }
