@@ -249,7 +249,7 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
     const templateInfo = makeElement("section", null, null, null);
     const templateP = makeElement("p", null, "text", null);
     if (!initialRemainingToStart.isFinished) {
-      templateP.textContent = "You can start planning your designs by using the Template feature in Canvas's setting";
+      templateP.textContent = "You can start planning your designs by using the Template feature in Canvas's setting or use @mf_h's team template tool";
     } else {
       templateP.textContent = "The more pixels you place, the higher your rank, so go place some pixels!"
     }
@@ -261,7 +261,14 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
     const canvasLinkText = document.createTextNode("Go to Canvas");
     const canvasLinkIcon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
     canvasLink.append(canvasLinkText, canvasLinkIcon);
-    templateButtonRow.appendChild(canvasLink);
+    const teamTemplate = document.createElement("a") as HTMLAnchorElement;
+    teamTemplate.href = "https://chocolatecakecodes.goip.de/cotemplate/ui/template/20260520-Canvas26_main";
+    teamTemplate.target = "_blank";
+    teamTemplate.className = "btn blue";
+    const teamTemplateText = "Team Template tool";
+    const teamTemplateIcon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
+    teamTemplate.append(teamTemplateText, teamTemplateIcon);
+    templateButtonRow.append(canvasLink, teamTemplate);
     templateInfo.append(templateP, templateButtonRow);
     templateArticle.append(templateIcon, templateInfo);
     statsContainer.appendChild(templateArticle);
