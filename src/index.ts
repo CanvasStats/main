@@ -2,7 +2,7 @@ import { getYear, initializeApp } from "./main";
 import { ContentPair, type ColorCount, type JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
-import { addLoadingElement, clearMessages, comingSoonBlock, getRandomColor, makeElement } from "./modules/utils";
+import { addLoadingElement, clearMessages, comingSoonBlock, createSocialBlock, getRandomColor, makeElement } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 
 let viewYear: number = 2026;
@@ -70,8 +70,9 @@ async function updateStats() {
 
     if (viewYear === 2026) {
         comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z");
+        const socialBlock = createSocialBlock("right", "Stay Connected", "public", );
+        statsContainer.appendChild(socialBlock);
     } else {
-        
         const yearData = await getJsonBlocks(viewYear);
         let colorCounts: ColorCount[] = [];
         let pixelPerMinuteURL: string = "";
@@ -81,12 +82,12 @@ async function updateStats() {
                 colorCounts = mapColorCountJsonToInterface(block.data);
                 const colorStat = document.createElement('article');
                 colorStat.setAttribute('class', `${block.layout} colorStat`);
-                
+
                 const pieChartContainer = document.createElement('div');
                 pieChartContainer.setAttribute('class', 'colorCountsPieChart');
                 pieChartContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
                 colorStat.appendChild(pieChartContainer);
-                
+
                 const statSection = document.createElement('section');
                 statSection.setAttribute('class', 'color-section');
                 if (block.title) {
@@ -96,10 +97,10 @@ async function updateStats() {
                 const toolTip = makeElement("div", "chart-tooltip", 'chart-tooltip', null);
                 statSection.appendChild(toolTip);
                 colorStat.appendChild(statSection);
-                
+
                 statsContainer.appendChild(colorStat);
                 createColorCountPieChart(viewYear, colorCounts, pieChartContainer, true, "slice-clickable");
-                
+
             } else if (block.type === "graph") {
                 pixelPerMinuteURL = block.url;
                 const graphStat = makeElement("article", null, block.layout, null);
@@ -112,10 +113,13 @@ async function updateStats() {
                 graphContainer.setAttribute("style", "width: 100%; max-width: 800px; margin: auto;");
                 statSection.appendChild(graphContainer);
                 graphStat.appendChild(statSection);
-                
+
                 statsContainer.appendChild(graphStat);
-                
+
                 createLineGraph(pixelPerMinuteURL, graphContainer);
+            } else if (block.type === "social") {
+                const socialBlock = createSocialBlock(block.layout, block.title, block.icon);
+                statsContainer.appendChild(socialBlock);
             } else {
                 renderTree(structure, statsContainer);
             }
@@ -126,7 +130,7 @@ async function updateStats() {
 
 function mapColorCountJsonToInterface(data: ColorCount[]) {
     return data.reduce((acc: ColorCount[], currentCount: ColorCount) => {
-        const newCount: ColorCount = {class: currentCount['class'], label: currentCount['label'], count: currentCount['count'], hex: currentCount['hex']};
+        const newCount: ColorCount = { class: currentCount['class'], label: currentCount['label'], count: currentCount['count'], hex: currentCount['hex'] };
         acc.push(newCount);
         return acc;
     }, []);
