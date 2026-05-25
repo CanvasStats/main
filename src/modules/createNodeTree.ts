@@ -23,7 +23,6 @@ export function getBlockStructure(block: any, year: number) {
                                 attr: 'href',
                                 attrVal: part.url || '#',
                                 txtNode: part.linkText,
-                                // Optional: trigger your renderTree to add target="_blank"
                             };
                         } else {
                             return {

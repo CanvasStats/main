@@ -294,7 +294,7 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
     { contentKey: "Lemmy", contentValue: "https://toast.ooo/c/canvas" },
     { contentKey: "Mastodon", contentValue: "https://social.fediverse.events/@canvas" },
     { contentKey: "Matrix", contentValue: "https://chat.fediverse.events/switch/cinny" },
-    { contentKey: "https://discord.gg/XrDSJ2WJqa", contentValue: "Discord Server" },
+    { contentKey: "Discord Server", contentValue: "https://discord.gg/XrDSJ2WJqa" },
     { contentKey: "fediverse.events", contentValue: "https://fediverse.events/" }
   ];
   const linksUL = links.reduce((acc: HTMLElement, link: ContentPair) => {

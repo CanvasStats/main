@@ -84,7 +84,6 @@ async function updateStats() {
                 
                 const pieChartContainer = document.createElement('div');
                 pieChartContainer.setAttribute('class', 'colorCountsPieChart');
-                // Added structural layout configuration values directly to prevent grid-collapsing anomalies
                 pieChartContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
                 colorStat.appendChild(pieChartContainer);
                 
