@@ -696,6 +696,12 @@ section {
     image-rendering: pixelated;
 }
 
+.social {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 /*========================================================
                         FOOTER
   ========================================================*/

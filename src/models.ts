@@ -179,6 +179,7 @@ export class Link {
     public queryParams?: { [key: string]: any };
     public url?: string;
     public page?: any;
+    public svg?: any;
 
     constructor(
         linkText: string,
@@ -186,14 +187,16 @@ export class Link {
         external: boolean,
         queryParams?: { [key: string]: any },
         url?: string,
-        page?: any
+        page?: any,
+        svg?: any
     ) {
         this.linkText = linkText;
         this.classes = classes;
         this.external = external;
         this.queryParams = queryParams;
         if (url) this.url = url;
-        if (page) this.page = page
+        if (page) this.page = page;
+        if (svg) this.svg = svg;
     }
 }
 
@@ -268,3 +271,4 @@ export interface JsonObject {
     blocks: JsonBlock[];
 
 }
+
