@@ -141,6 +141,8 @@ async function updateStats() {
                 renderTree(structure, statsContainer);
             }
         });
+    } else {
+        createMessage(`Could not load ${username}'s data for ${viewYear}`, "main-message", "error");
     }
     mainLoader.classList.add("hide");
 }

@@ -85,7 +85,7 @@ export async function getPixelsForDraw(params: DrawParams) {
     if (pixels) {
         //Get just the user's pixels
         if (params['username']) {
-            pixels = pixels.filter(pixel => pixel['username'] === params['username']);
+            pixels = pixels.filter(pixel => pixel['username'].toLowerCase() === params['username']?.toLowerCase());
         }
         if (params['undo']) {
             if (params['undo'] === true) {

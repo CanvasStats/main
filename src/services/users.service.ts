@@ -93,7 +93,7 @@ export async function getUserStats(username: string, year: number) {
     const yearCounts = getYearCounts(year);
     console.log(yearCounts)
     if (allUsersData) {
-        const user: User | undefined = allUsersData.find(user => user['username'] === username);
+        const user: User | undefined = allUsersData.find(user => user['username'].toLowerCase() === username.toLowerCase());
         const topCount = await countUsersFinalPixels(username, year)
         if (user) {
             let userJson: JsonObject = {
@@ -256,7 +256,7 @@ export async function getColorCountsForYear(year: number) {
 export async function GetColorCountForUsername(year: number, username: string) {
     const colorCounts: ColorsCounts[] | null = await getColorCountsForYear(year);
     if (colorCounts) {
-        let colorCountWithUsername: Omit<ColorsCounts, "username"> | undefined = colorCounts.find(count => count['username'] === username);
+        let colorCountWithUsername: Omit<ColorsCounts, "username"> | undefined = colorCounts.find(count => count['username'].toLowerCase() === username.toLowerCase());
         if (colorCountWithUsername) {
             const keys = Object.keys(colorCountWithUsername);
             const values = Object.values(colorCountWithUsername);
@@ -301,7 +301,7 @@ export async function getPixelsPerHourForUser(year: number, username: string) {
     if (pixelsForYear) {
         const firstPixel = pixelsForYear[0];
         const lastPixel = pixelsForYear[pixelsForYear.length - 1];
-        const pixelsForUser = pixelsForYear.filter(pixel => pixel['username'] === username);
+        const pixelsForUser = pixelsForYear.filter(pixel => pixel['username'].toLowerCase() === username.toLowerCase());
         if (pixelsForUser.length === 0) return [];
         const sortedPixels = [...pixelsForUser].sort(
             (a, b) => new Date(a.timePlaced).getTime() - new Date(b.timePlaced).getTime()
