@@ -293,7 +293,7 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
   const links: ContentPair[] = [
     { contentKey: "Lemmy", contentValue: "https://toast.ooo/c/canvas" },
     { contentKey: "Mastodon", contentValue: "https://social.fediverse.events/@canvas" },
-    { contentKey: "Matrix Space", contentValue: "https://matrix.to/#/#canvas:aftermath.gg?via=matrix.org" },
+    { contentKey: "Matrix", contentValue: "https://chat.fediverse.events/switch/cinny" },
     { contentKey: "https://discord.gg/XrDSJ2WJqa", contentValue: "Discord Server" },
     { contentKey: "fediverse.events", contentValue: "https://fediverse.events/" }
   ];
