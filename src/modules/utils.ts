@@ -1,4 +1,5 @@
 import type { Link } from "../models";
+import { navigateTo } from "./navigate";
 
 export function createIconDiv(iconType: string, iconName: string) {
   const iconDiv = document.createElement('div');
@@ -265,10 +266,12 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
     teamTemplate.href = "https://chocolatecakecodes.goip.de/cotemplate/ui/template/20260520-Canvas26_main";
     teamTemplate.target = "_blank";
     teamTemplate.className = "btn blue";
-    const teamTemplateText = "Team Template tool";
+    const teamTemplateText = "Team Template Tool";
     const teamTemplateIcon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
     teamTemplate.append(teamTemplateText, teamTemplateIcon);
-    templateButtonRow.append(canvasLink, teamTemplate);
+    const colors = makeElement("a", null, "clickable btn orange", "Color palette");
+    colors.onclick = function() {navigateTo("/colors")}
+    templateButtonRow.append(canvasLink, teamTemplate, colors);
     templateInfo.append(templateP, templateButtonRow);
     templateArticle.append(templateIcon, templateInfo);
     statsContainer.appendChild(templateArticle);

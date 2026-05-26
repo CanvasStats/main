@@ -13,6 +13,7 @@ export default defineConfig({
         user: resolve(__dirname, 'user.html'),
         faq: resolve(__dirname, 'faq.html'),
         draw: resolve(__dirname, 'draw.html'),
+        colors: resolve(__dirname, 'colors.html')
       },
     },
   },
