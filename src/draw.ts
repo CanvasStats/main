@@ -1,7 +1,7 @@
 import { initializeApp } from "./main";
 import { DrawParams, type Pixel } from "./models";
 import { navigateTo } from "./modules/navigate";
-import { addLoadingElement, createButton, createMessage, getHexForColor, makeElement } from "./modules/utils";
+import { addLoadingElement, createButton, createMessage, convertColor, makeElement } from "./modules/utils";
 import { getPixelsForDraw, getYears } from "./services/canvas.service";
 
 const main = document.querySelector('main') as HTMLElement;
@@ -46,7 +46,7 @@ if (undoString === "true") {
 } else if (undoString === "false") {
     undo = false;
 }
-let color: string | null = colorString ? getHexForColor(colorString) : null;
+let color: string | null = colorString ? convertColor(colorString) : null;
 let topOnly: boolean | null = null;
 if (isTopString === "true") {
     topOnly = true;
