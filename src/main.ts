@@ -54,6 +54,7 @@ export async function initializeApp(parentPage: string, currentPage: string, sho
   const storedMessageString = sessionStorage.getItem("message");
   if (storedMessageString) {
     const storedMessage = JSON.parse(storedMessageString);
+    console.log(storedMessage['message'])
     createMessage(storedMessage['message'], storedMessage['messageContainer'], storedMessage['icon']);
     sessionStorage.removeItem("message");
   }

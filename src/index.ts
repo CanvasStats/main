@@ -60,6 +60,7 @@ if (loading) loading.remove();
 main.classList.remove("hide");
 
 async function updateStats() {
+    const loadingText = document.getElementById("main-loader-text") as HTMLElement;
     statsContainer.innerHTML = "";
     mainLoader.classList.remove("hide");
 
@@ -79,6 +80,7 @@ async function updateStats() {
         if (yearData) yearData.blocks.forEach((block: any) => {
             const structure = getBlockStructure(block, viewYear);
             if (block.type === "color-grid") {
+                loadingText.textContent = "Creating pie chart";
                 colorCounts = mapColorCountJsonToInterface(block.data);
                 const colorStat = document.createElement('article');
                 colorStat.setAttribute('class', `${block.layout} colorStat`);
@@ -102,6 +104,7 @@ async function updateStats() {
                 createColorCountPieChart(viewYear, colorCounts, pieChartContainer, true, "slice-clickable");
 
             } else if (block.type === "graph") {
+                loadingText.textContent = "Creating line graph";
                 pixelPerMinuteURL = block.url;
                 const graphStat = makeElement("article", null, block.layout, null);
                 const statSection = makeElement("section", null, null, null);
@@ -125,6 +128,7 @@ async function updateStats() {
             }
         });
     }
+    loadingText.textContent = "All Done";
     mainLoader.classList.add("hide");
 }
 

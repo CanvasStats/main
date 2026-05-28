@@ -13,7 +13,7 @@ function createLinkWithIcon(data: LinkWithIcon) {
         linkIcon.src = data.svgSrc;
         linkElem.appendChild(linkIcon);
     }
-    const linkElemText = document.createTextNode(data.linkText);
+    const linkElemText = makeElement("span", null, null, data.linkText);
     linkElem.appendChild(linkElemText);
     if (data.external) linkElem.target = "_blank";
     return linkElem;
@@ -30,6 +30,7 @@ type LinkWithIcon = {
 const headerItems: LinkWithIcon[] = [
     { linkText: "Home", href: "/", external: false, materialIcon: "home" },
     { linkText: "Users", href: "/users", external: false, materialIcon: "group" },
+    { linkText: "Instances", href: "/instances/", external: false, materialIcon: "dns" },
     { linkText: "F.A.Q.", href: "/faq", external: false, materialIcon: "contact_support" },
     { linkText: "Go To Canvas", href: "https://canvas.fediverse.events", external: true, materialIcon: "open_in_new" }
 ]
@@ -42,7 +43,7 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
     logoImage.src = "https://raw.githubusercontent.com/CanvasStats/main/cb3fac2a0a08dcd846a53e0946a85ece3e2807bf/public/icon.svg"
     logo.appendChild(logoImage);
     const logoText = makeElement("h1", null, null, "Canvas Stats");
-    logo.onclick = function() {navigateTo("/")}
+    logo.onclick = function () { navigateTo("/") }
     logo.appendChild(logoText);
     header.appendChild(logo);
     //Links
@@ -69,7 +70,7 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
             const formData = new FormData(search);
             const searchTerm = formData.get("search-input");
             if (searchTerm && searchTerm.toString().trim() !== "") {
-                navigateTo("/users", {params: {username: searchTerm.toString().trim()}});
+                navigateTo("/users", { params: { username: searchTerm.toString().trim() } });
             }
         });
         search.appendChild(searchButton);

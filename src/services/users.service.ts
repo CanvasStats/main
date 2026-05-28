@@ -1,5 +1,5 @@
-import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks } from "../models";
-import { createMessage, fetchHTML, getHexForColor } from "../modules/utils";
+import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks, type DataRow } from "../models";
+import { createMessage, fetchHTML, convertColor } from "../modules/utils";
 import { getYearCounts, getPixelsForDraw, countUsersFinalPixels } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
@@ -91,7 +91,6 @@ async function getAllUserStatsForYear(year: number) {
 export async function getUserStats(username: string, year: number) {
     const allUsersData: User[] | undefined = await getAllUserStatsForYear(year);
     const yearCounts = getYearCounts(year);
-    console.log(yearCounts)
     if (allUsersData) {
         const user: User | undefined = allUsersData.find(user => user['username'].toLowerCase() === username.toLowerCase());
         const topCount = await countUsersFinalPixels(username, year)
@@ -135,7 +134,7 @@ export async function getUserStats(username: string, year: number) {
                         layout: "left",
                         icon: "arrow_shape_up_stack_2",
                         content: [
-                            `${topCount} of your pixels made it to the final image at the end of the event`
+                            `${topCount} of your pixels (${((topCount / user['pixelCount']) * 100).toFixed(2)}%) made it to the final image at the end of the event`
                         ]
                     },
                     {
@@ -269,7 +268,7 @@ export async function GetColorCountForUsername(year: number, username: string) {
                     const newColor: ColorCount = {
                         class: key,
                         label: readableColor,
-                        hex: getHexForColor(readableColor),
+                        hex: convertColor(readableColor),
                         count: values[index]
                     }
                     colors.push(newColor);
@@ -289,11 +288,6 @@ export async function getNumColorsUsedForUsername(year: number, username: string
     } else {
         return 0;
     }
-}
-
-interface DataRow {
-    timestamp: Date;
-    pixelCount: number;
 }
 
 export async function getPixelsPerHourForUser(year: number, username: string) {

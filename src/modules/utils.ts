@@ -89,44 +89,53 @@ export function createButton(buttonColor: string, buttonText: string, iconName?:
   return newButton;
 }
 
-export function getHexForColor(color: string) {
-  switch (color) {
-    case 'white': return '#FFFFFF';
-    case 'light grey': return '#B9C3CF';
-    case 'medium grey': return '#777F8C';
-    case 'deep grey': return '#424651';
-    case 'dark grey': return '#1F1E26';
-    case 'black': return '#000000';
-    case 'dark chocolate': return '#382215';
-    case 'chocolate': return '#7C3F20';
-    case 'brown': return '#C06F37';
-    case 'peach': return '#FEAD6C';
-    case 'beige': return '#FFD2B1';
-    case 'pink': return '#FFA4D0';
-    case 'magenta': return '#F14FB4';
-    case 'mauve': return '#E973FF';
-    case 'purple': return '#A630D2';
-    case 'dark purple': return '#531D8C';
-    case 'navy': return '#242367';
-    case 'blue': return '#0334BF';
-    case 'azure': return '#149CFF';
-    case 'aqua': return '#8DF5FF';
-    case 'light teal': return '#01BFA5';
-    case 'dark teal': return '#16777E';
-    case 'forest': return '#054523';
-    case 'dark green': return '#18862F';
-    case 'green': return '#61E021';
-    case 'lime': return '#B1FF37';
-    case 'pastel yellow': return '#FFFFA5';
-    case 'yellow': return '#FDE111';
-    case 'orange': return '#FF9F17';
-    case 'rust': return '#F66E08';
-    case 'maroon': return '#550022';
-    case 'rose': return '#99011A';
-    case 'red': return '#F30F0C';
-    case 'watermelon': return '#FF7872';
-    default: return '#000000';
-  }
+const COLOR_MAP: Record<string, string> = {
+    'white': '#FFFFFF',
+    'light grey': '#B9C3CF',
+    'medium grey': '#777F8C',
+    'deep grey': '#424651',
+    'dark grey': '#1F1E26',
+    'black': '#000000',
+    'dark chocolate': '#382215',
+    'chocolate': '#7C3F20',
+    'brown': '#C06F37',
+    'peach': '#FEAD6C',
+    'beige': '#FFD2B1',
+    'pink': '#FFA4D0',
+    'magenta': '#F14FB4',
+    'mauve': '#E973FF',
+    'purple': '#A630D2',
+    'dark purple': '#531D8C',
+    'navy': '#242367',
+    'blue': '#0334BF',
+    'azure': '#149CFF',
+    'aqua': '#8DF5FF',
+    'light teal': '#01BFA5',
+    'dark teal': '#16777E',
+    'forest': '#054523',
+    'dark green': '#18862F',
+    'green': '#61E021',
+    'lime': '#B1FF37',
+    'pastel yellow': '#FFFFA5',
+    'yellow': '#FDE111',
+    'orange': '#FF9F17',
+    'rust': '#F66E08',
+    'maroon': '#550022',
+    'rose': '#99011A',
+    'red': '#F30F0C',
+    'watermelon': '#FF7872',
+};
+
+const HEX_MAP = Object.fromEntries(
+    Object.entries(COLOR_MAP).map(([color, hex]) => [hex.toUpperCase(), color])
+);
+
+export function convertColor(input: string): string {
+    const cleanInput = input.trim();
+    if (cleanInput.startsWith('#')) {
+        return HEX_MAP[cleanInput.toUpperCase()] || 'unknown color';
+    }
+    return COLOR_MAP[cleanInput.toLowerCase()] || '#000000';
 }
 
 export function makeElement(elementType: string, elementId: string | null, elementClass: string | null, elementText: string | null) {
@@ -179,8 +188,9 @@ export async function fetchHTML(url: string) {
 export function addLoadingElement(): HTMLElement {
   const loadingDiv = makeElement("div", "loading-main", "hide", null);
   const loadingWrapper = makeElement("div", "wrapper", null, null);
+  const loadingText = makeElement("h2", "main-loader-text", null, "Loading");
   const loaderSpan = makeElement("span", null, "loader", null);
-  loadingWrapper.appendChild(loaderSpan);
+  loadingWrapper.append(loadingText, loaderSpan);
   loadingDiv.appendChild(loadingWrapper);
   return loadingDiv;
 }

@@ -1,3 +1,5 @@
+import { getRandomColor } from "./modules/utils";
+
 export class ContentPair {
     public contentKey: string;
     public contentValue: string;
@@ -272,3 +274,77 @@ export interface JsonObject {
 
 }
 
+export class Instance {
+    public instanceId: number;
+    public instanceName: string;
+    public users_2023: number | null = null;
+    public users_2024: number | null = null;
+    public users_2025: number | null = null;
+    public users_2026: number | null = null;
+    public pixels_2023: number | null = null;
+    public pixels_2024: number | null = null;
+    public pixels_2025: number | null = null;
+    public pixels_2026: number | null = null;
+
+    constructor(
+        instanceId: number,
+        instanceName: string,
+        users_2023: number | null,
+        users_2024: number | null,
+        users_2025: number | null,
+        users_2026: number | null,
+        pixels_2023: number | null,
+        pixels_2024: number | null,
+        pixels_2025: number | null,
+        pixels_2026: number | null
+    ) {
+        this.instanceId = instanceId;
+        this.instanceName = instanceName;
+        if (users_2023) {
+            this.users_2023 = users_2023;
+            this.pixels_2023 = pixels_2023;
+        }
+        if (users_2024) {
+            this.users_2024 = users_2024;
+            this.pixels_2024 = pixels_2024;
+        }
+        if (users_2025) {
+            this.users_2025 = users_2025;
+            this.pixels_2025 = pixels_2025;
+        }
+        if (users_2026) {
+            this.users_2026 = users_2026;
+            this.pixels_2026 = pixels_2026;
+        }
+    }
+    
+
+    public totalUsers(): number {
+        let total = 0;
+        if (this.users_2023) total += this.users_2023;
+        if (this.users_2024) total += this.users_2024;
+        if (this.users_2025) total += this.users_2025;
+        return total;
+    }
+
+    public yearsActive(): ContentPair[] {
+        let years: ContentPair[] = [];
+        if (this.pixels_2023) years.push({contentKey: "2023", contentValue: getRandomColor(1, true)});
+        if (this.pixels_2024) years.push({contentKey: "2024", contentValue: getRandomColor(2, true)});
+        if (this.pixels_2025) years.push({contentKey: "2025", contentValue: getRandomColor(3, true)});
+        return years;
+    }
+}
+
+export interface instanceItem {
+    instanceId: number;
+    instanceName: string;
+    numUsers?: number;
+    numPixels?: number;
+    yearsActive?: number;
+}
+
+export interface DataRow {
+    timestamp: Date;
+    pixelCount: number;
+}

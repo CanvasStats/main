@@ -1,5 +1,5 @@
 import { initializeApp } from "./main";
-import type { ColorCount, ContentPair, JsonObject } from "./models";
+import type { ColorCount, ContentPair, DataRow, JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
@@ -7,10 +7,7 @@ import { addLoadingElement, clearMessages, createMessage, makeElement, storeMess
 import { getYears } from "./services/canvas.service";
 import { GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
 
-interface DataRow {
-    timestamp: Date;
-    pixelCount: number;
-}
+
 
 const main = document.querySelector('main') as HTMLElement;
 const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
@@ -95,10 +92,14 @@ if (usernameString) {
 }
 
 async function updateStats() {
+    const loadingText = document.getElementById("main-loader-text") as HTMLElement;
     statsContainer.innerHTML = "";
     mainLoader.classList.remove("hide");
+    loadingText.textContent = "Getting user stats";
     const userData: JsonObject | null = await getUserStats(username, viewYear);
+    loadingText.textContent = "Getting color counts";
     let userColorCounts: ColorCount[] | null = await GetColorCountForUsername(viewYear, username);
+    loadingText.textContent = "Calculating pixels placed per hour";
     let pixelsPerHour: DataRow[] | undefined = await getPixelsPerHourForUser(viewYear, username);
     if (userData) {
         const usernameHeading = makeElement("h2", null, null, username);
@@ -107,6 +108,7 @@ async function updateStats() {
         userData.blocks.forEach(async (block: any) => {
             const structure = getBlockStructure(block, viewYear);
             if (block.type === "user-color-grid") {
+                loadingText.textContent = "Creating pie chart";
                 const colorStat = document.createElement('article');
                 colorStat.setAttribute('class', `${block.layout} colorStat`);
 
@@ -118,12 +120,12 @@ async function updateStats() {
                     const statHeader = makeElement("h3", null, null, block.title);
                     statSection.appendChild(statHeader);
                 }
-                const toolTip = document.createElement('div');
-                toolTip.setAttribute('id', 'tooltip');
+                const toolTip = makeElement("div", "chart-tooltip", 'chart-tooltip center', null);
                 statSection.appendChild(toolTip);
                 colorStat.appendChild(statSection);
                 statsContainer.appendChild(colorStat);
             } else if (block.type === "graph") {
+                loadingText.textContent = "Creating line graph";
                 const graphStat = makeElement("article", null, block.layout, null);
                 const statSection = makeElement("section", null, null, null);
                 if (block.title) {
@@ -135,7 +137,7 @@ async function updateStats() {
                 statSection.appendChild(graphContainer);
                 graphStat.appendChild(statSection);
                 statsContainer.appendChild(graphStat);
-                if (userColorCounts) createColorCountPieChart(2025, userColorCounts, pieChartContainer, false, "slice-clickable");
+                if (userColorCounts) createColorCountPieChart(2025, userColorCounts, pieChartContainer, false, "slice");
                 if (pixelsPerHour) createLineGraph(pixelsPerHour, graphContainer);
             } else {
                 renderTree(structure, statsContainer);
@@ -144,6 +146,7 @@ async function updateStats() {
     } else {
         createMessage(`Could not load ${username}'s data for ${viewYear}`, "main-message", "error");
     }
+    loadingText.textContent = "All Done!";
     mainLoader.classList.add("hide");
 }
 

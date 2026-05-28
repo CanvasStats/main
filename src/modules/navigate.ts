@@ -5,7 +5,10 @@ export const ALL_APP_PATHS = [
   '/user',
   '/faq',
   '/draw',
-  '/colors'
+  '/colors',
+  '/instances/',
+  '/instances/instance',
+  '/instances/users'
 ] as const;
 
 export type AppPath = typeof ALL_APP_PATHS[number];
