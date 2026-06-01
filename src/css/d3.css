@@ -17,3 +17,24 @@
     justify-content: center;
     align-items: center;
 }
+
+.colorCountsPieChart {
+    width: 100%; 
+    max-width: 1200px; 
+    margin: 0 auto;
+}
+
+.treemap {
+    flex-direction: column-reverse;
+}
+
+/* Container styling for alignment */
+.radio-item label {
+  display: inline-flex;
+  font-size: 20px;
+  margin: 10px;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 15px;
+  font-family: sans-serif;
+}

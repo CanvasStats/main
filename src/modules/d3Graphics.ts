@@ -9,12 +9,10 @@ interface AnimatablePathElement extends SVGPathElement {
 }
 
 export function createColorCountPieChart(year: number, colorCounts: ColorCount[], chartContainer: HTMLElement, isLink: boolean, sliceClass: string) {
-    // Setup Dimensions
     const width = 300;
     const height = 300;
     const radius = Math.min(width, height) / 2;
-    
-    // Create the SVG element
+
     const svg = d3.select(chartContainer)
         .append("svg")
         .attr("viewBox", `0 0 ${width} ${height}`)
@@ -24,32 +22,27 @@ export function createColorCountPieChart(year: number, colorCounts: ColorCount[]
         .style("height", "auto")
         .append("g")
         .attr("transform", `translate(${width / 2}, ${height / 2})`);
-        
-    // Find tooltip locally inside the parent component card container
+
     const parentCard = chartContainer.parentElement;
-    const tooltip = parentCard 
-        ? d3.select(parentCard).select(".chart-tooltip") 
+    const tooltip = parentCard
+        ? d3.select(parentCard).select(".chart-tooltip")
         : d3.select(".chart-tooltip");
-        
-    // Pie Generator
+
     const pie = d3.pie<any, ColorCount>()
         .sort(null)
         .value(d => d.count);
-        
-    // Arc Generator
+
     const arc = d3.arc<any, d3.PieArcDatum<ColorCount>>()
         .innerRadius(radius * 0.5)
         .outerRadius(radius * 0.9);
-        
-    // Generate the Pie Data
+
     const arcs = pie(colorCounts);
-    
-    // Draw the Slices (Paths)
+
     const g = svg.selectAll(".arc")
         .data(arcs)
         .enter().append("g")
         .attr("class", "arc");
-        
+
     const paths = g.append("path")
         .attr("class", sliceClass)
         .style("fill", d => d.data.hex)
@@ -60,7 +53,6 @@ export function createColorCountPieChart(year: number, colorCounts: ColorCount[]
             const self = this as AnimatablePathElement;
             self._current = { ...d, endAngle: d.startAngle };
         })
-        // Apply interaction routing handlers
         .on("click", (_event, d) => {
             if (isLink) {
                 if (d.data.class === "white") {
@@ -127,14 +119,14 @@ export function createLineGraph(csvUrl: string | DataRow[], chartContainerID: HT
         } else {
             rawData = csvUrl;
         }
-        
+
         const svg = d3.select(chartContainerID)
             .append("svg")
             .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
             .attr("preserveAspectRatio", "xMinYMin meet")
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
-            
+
         const x = d3.scaleTime()
             .domain(d3.extent(rawData, d => d.timestamp) as [Date, Date])
             .range([0, width]);
@@ -143,7 +135,7 @@ export function createLineGraph(csvUrl: string | DataRow[], chartContainerID: HT
             .domain([0, d3.max(rawData, d => d.pixelCount) || 0])
             .nice()
             .range([height, 0]);
-            
+
         const line = d3.line<DataRow>()
             .x(d => x(d.timestamp))
             .y(d => y(d.pixelCount))
@@ -155,7 +147,7 @@ export function createLineGraph(csvUrl: string | DataRow[], chartContainerID: HT
 
         svg.append("g")
             .call(d3.axisLeft(y));
-            
+
         svg.append("path")
             .datum(rawData)
             .attr("fill", "none")
@@ -165,4 +157,113 @@ export function createLineGraph(csvUrl: string | DataRow[], chartContainerID: HT
     }
 
     createChart();
+}
+
+interface TreemapRoot {
+    name: string;
+    children: ColorCount[];
+}
+
+export function createColorTreemap(
+    selector: HTMLElement,
+    data: ColorCount[],
+    isLink: boolean,
+    year: number
+): void {
+    const container = d3.select(selector);
+    container.selectAll('*').remove();
+
+    let tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+
+    const existingTooltip = d3.select<HTMLDivElement, unknown>('#treemap-tooltip');
+
+    if (existingTooltip.empty()) {
+        tooltip = d3.select('body')
+            .append('div')
+            .attr('id', 'treemap-tooltip')
+            .style('position', 'absolute')
+            .style('visibility', 'hidden')
+            .style('background-color', 'rgba(33, 33, 33, 0.9)')
+            .style('color', '#fff')
+            .style('padding', '6px 10px')
+            .style('border-radius', '4px')
+            .style('font-size', '12px')
+            .style('font-family', 'sans-serif')
+            .style('pointer-events', 'none')
+            .style('z-index', '1000');
+    } else {
+        tooltip = existingTooltip;
+    }
+
+    const rootData: TreemapRoot = { name: "root", children: data };
+    const root = d3.hierarchy<TreemapRoot>(rootData)
+        .sum((d: any) => d.count)
+        .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+
+    d3.treemap<TreemapRoot>()
+        .size([800, 500])
+        .padding(2)
+        (root);
+
+    const svg = container
+        .append('svg')
+        .attr('viewBox', `0 0 800 500`)
+        .attr('width', '100%')
+        .attr('height', 'auto')
+        .style('display', 'block')
+        .style('max-width', '100%');
+
+    const leaves = root.leaves() as d3.HierarchyRectangularNode<any>[];
+
+    const cell = svg.selectAll('g')
+        .data(leaves)
+        .join('g')
+        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+    cell.append('rect')
+        .attr('width', d => d.x1 - d.x0)
+        .attr('height', d => d.y1 - d.y0)
+        .attr('fill', d => d.data.hex)
+        .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
+        .style('cursor', 'pointer')
+        .on("click", (_event, d) => {
+            if (isLink) {
+                if (d.data.class === "white") {
+                    navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year } });
+                } else {
+                    navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year } });
+                }
+            }
+        })
+        .on('mouseover', function () {
+            tooltip.style('visibility', 'visible');
+        })
+        .on('mousemove', function (event, d) {
+            tooltip
+                .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
+                .style('top', (event.pageY - 40) + 'px')
+                .style('left', (event.pageX + 15) + 'px');
+        })
+        .on('mouseout', function () {
+            tooltip.style('visibility', 'hidden');
+        });
+
+    const textBlock = cell.append('text')
+        .attr('x', 5)
+        .attr('y', 15)
+        .style('font-size', '11px')
+        .style('font-family', 'sans-serif')
+        .style('font-weight', 'bold')
+        .attr('fill', d => ['white', 'light grey', 'brown', 'peach', 'beige', 'pink', 'magenta', 'mauve', 'aqua', 'green', 'lime', 'pastel yellow', 'yellow', 'orange', 'azure', 'watermelon'].includes(d.data.label.toLowerCase()) ? '#000' : '#fff')
+        .style('display', d => (d.x1 - d.x0 < 70 || d.y1 - d.y0 < 35) ? 'none' : 'block');
+
+    textBlock.append('tspan')
+        .text((d: any) => d.data.label);
+
+    textBlock.append('tspan')
+        .attr('x', 5)
+        .attr('dy', '1.2em')
+        .style('font-weight', 'normal')
+        .style('opacity', 0.8)
+        .text((d: any) => d.data.count.toLocaleString());
 }
