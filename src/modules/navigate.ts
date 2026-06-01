@@ -8,7 +8,8 @@ export const ALL_APP_PATHS = [
   '/colors',
   '/instances/',
   '/instances/instance',
-  '/instances/users'
+  '/instances/users',
+  '/search'
 ] as const;
 
 export type AppPath = typeof ALL_APP_PATHS[number];

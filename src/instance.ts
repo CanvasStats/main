@@ -119,21 +119,7 @@ async function updateStats() {
         const pixelsIcon = makeElement("span", null, "material-symbols-outlined icon", "grid_view");
         const pixelsInfo = makeElement("section", null, null, null);
         const pixelsP = makeElement("p", null, "text", null);
-        switch (viewYear) {
-            case "2023":
-                pixelsPlaced = instanceInfo?.pixels_2023 ? instanceInfo?.pixels_2023 : 0;
-
-                break;
-            case "2024":
-                pixelsPlaced = instanceInfo?.pixels_2024 ? instanceInfo?.pixels_2024 : 0;
-                break;
-            case "2025":
-                pixelsPlaced = instanceInfo?.pixels_2025 ? instanceInfo?.pixels_2025 : 0;
-                break;
-            case "2026":
-                pixelsPlaced = instanceInfo?.pixels_2026 ? instanceInfo?.pixels_2026 : 0;
-                break;
-        }
+        pixelsPlaced = instanceInfo?.pixels[+viewYear] ? instanceInfo?.pixels[+viewYear] : 0;
         loadingText.textContent = "Counting pixels placed";
         pixelsP.textContent = `${pixelsPlaced} total pixels where placed on the canvas by users of ${instanceName}`;
         pixelsInfo.appendChild(pixelsP);

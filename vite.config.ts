@@ -16,7 +16,8 @@ export default defineConfig({
         colors: resolve(__dirname, 'colors.html'),
         instances: resolve(__dirname, 'instances/index.html'),
         instance: resolve(__dirname, 'instances/instance.html'),
-        iUSers: resolve(__dirname, 'instances/users.html')
+        iUSers: resolve(__dirname, 'instances/users.html'),
+        search: resolve(__dirname, 'search.html')
       },
     },
   },

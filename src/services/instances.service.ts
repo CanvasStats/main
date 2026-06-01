@@ -4,49 +4,52 @@ import { getPixelsForDraw } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
-export async function getAllInstances() {
+export async function getAllInstances(): Promise<Instance[]> {
     try {
         const userCSVData = await fetchHTML(`${baseURL}/instances.csv`);
-        if (userCSVData) {
-            //Split the csv file into lines
-            //instance_id,instance_name,users_2023,users_2024,users_2025,pixels_2023,pixels_2024,pixels_2025
-            const lines = userCSVData.trim().split('\n');
-            const headers = lines.shift();
-            if (!headers) return [];
-
-            const instances: Instance[] = [];
-
-            for (const line of lines) {
-                // Split by comma to get individual values
-                const columns = line.split(',');
-                // Ensure the row has the expected number of columns
-                if (columns.length < 5) continue;
-                const [rawInstanceId, instanceName, rawUsers2023, rawUsers2024, rawUsers2025, rawPixels2023, rawPixels2024, rawPixels2025] = columns;
-                // Parse integers, or fall back to null if the CSV column is empty
-                const instance_id = parseInt(rawInstanceId, 10);
-                const users2023 = rawUsers2023.trim() === '' ? null : parseInt(rawUsers2023, 10);
-                const users2024 = rawUsers2024.trim() === '' ? null : parseInt(rawUsers2024, 10);
-                const users2025 = rawUsers2025.trim() === '' ? null : parseInt(rawUsers2025, 10);
-                const pixels2023 = rawPixels2023.trim() === '' ? null : parseInt(rawPixels2023, 10);
-                const pixels2024 = rawPixels2024.trim() === '' ? null : parseInt(rawPixels2024, 10);
-                const pixels2025 = rawPixels2025.trim() === '' ? null : parseInt(rawPixels2025, 10);
-                instances.push(new Instance(
-                    instance_id,
-                    instanceName.trim(),
-                    users2023,
-                    users2024,
-                    users2025,
-                    null,
-                    pixels2023,
-                    pixels2024,
-                    pixels2025,
-                    null
-                ));
-            }
-            return instances;
-        } else {
+        if (!userCSVData) {
             throw new Error("Could not get instances. Please try reloading the page");
         }
+
+        const lines = userCSVData.trim().split('\n');
+        const headerLine = lines.shift();
+        if (!headerLine) return [];
+        const headers = headerLine.split(',').map(column => column.trim());
+        const instances: Instance[] = [];
+
+        for (const line of lines) {
+            const columns = line.split(',');
+            if (columns.length < 2) continue;
+            const idIndex = headers.indexOf('instance_id');
+            const nameIndex = headers.indexOf('instance_name');
+            const instanceId = parseInt(columns[idIndex], 10);
+            const instanceName = columns[nameIndex]?.trim() || '';
+
+            const usersByYear: Record<number, number | null> = {};
+            const pixelsByYear: Record<number, number | null> = {};
+
+            headers.forEach((header, index) => {
+                const valueStr = columns[index]?.trim();
+                const numericValue = valueStr === '' || !valueStr ? null : parseInt(valueStr, 10);
+
+                if (header.startsWith('users_')) {
+                    const year = parseInt(header.replace('users_', ''), 10);
+                    usersByYear[year] = numericValue;
+                } else if (header.startsWith('pixels_')) {
+                    const year = parseInt(header.replace('pixels_', ''), 10);
+                    pixelsByYear[year] = numericValue;
+                }
+            });
+
+            instances.push(new Instance(
+                instanceId,
+                instanceName,
+                usersByYear,
+                pixelsByYear
+            ));
+        }
+
+        return instances;
     } catch (error: any) {
         throw new Error("Could not get instances. Please try reloading the page");
     }

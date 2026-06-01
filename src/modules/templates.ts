@@ -54,26 +54,38 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
     });
     //Search
     if (showSearch) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSearchTerm: string | null = urlParams.get("term");
         const search = document.getElementById("search") as HTMLFormElement;
         const searchContainer = makeElement("div", "search-container", "search-bar-container", null);
         const searchIcon = makeElement("span", null, "material-symbols-outlined", "search");
         searchContainer.appendChild(searchIcon);
-        const searchInput = makeElement("input", "search-input", "search-bar", null);
+        const searchInput = makeElement("input", "search-input", "search-bar", null) as HTMLInputElement
         searchInput.setAttribute("type", "text");
         searchInput.setAttribute("placeholder", "Search Users...");
         searchInput.setAttribute("name", "search-input");
         searchContainer.appendChild(searchInput);
         search.appendChild(searchContainer);
         const searchButton = makeElement("button", "search-button", "btn purple", "Search");
+        searchButton.setAttribute("type", "submit");
         search.addEventListener("submit", (e) => {
             e.preventDefault();
             const formData = new FormData(search);
             const searchTerm = formData.get("search-input");
-            if (searchTerm && searchTerm.toString().trim() !== "") {
-                navigateTo("/users", { params: { username: searchTerm.toString().trim() } });
+            if (searchTerm && searchTerm.toString().trim() !== "" && urlSearchTerm?.trim() !== searchTerm.toString().trim()) {
+                navigateTo("/search", { params: { term: searchTerm.toString().trim() } });
             }
         });
         search.appendChild(searchButton);
+        if (urlSearchTerm && urlSearchTerm.trim() !== '') {
+            const clearButton = makeElement("button", "clear-button", "btn red", "clear");
+            clearButton.setAttribute("type", "button");
+            clearButton.onclick = function() {
+                navigateTo("/users");
+            }
+            search.appendChild(clearButton);
+            searchInput.value = urlSearchTerm.trim();
+        }
     }
 }
 

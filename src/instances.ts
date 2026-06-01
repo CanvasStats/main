@@ -49,28 +49,11 @@ function loadYearData(viewYear: string): instanceItem[] {
             if (viewYear === "All") {
                 newInstance = { instanceName: instance.instanceName, numUsers: instance.totalUsers(), instanceId: instance.instanceId }
             } else {
-                switch (viewYear) {
-                    case "2023":
-                        if (instance.users_2023 && instance.pixels_2023) newInstance = { 
-                            numUsers: instance.users_2023, 
-                            instanceName: instance.instanceName, 
-                            numPixels: instance.pixels_2023, 
-                            instanceId: instance.instanceId }
-                        break;
-                    case "2024":
-                        if (instance.users_2024 && instance.pixels_2024) newInstance = { 
-                            numUsers: instance.users_2024, 
-                            instanceName: instance.instanceName, 
-                            numPixels: instance.pixels_2024, 
-                            instanceId: instance.instanceId }
-                        break;
-                    case "2025":
-                        if (instance.users_2025 && instance.pixels_2025) newInstance = { 
-                            numUsers: instance.users_2025, 
-                            instanceName: instance.instanceName, 
-                            numPixels: instance.pixels_2025, 
-                            instanceId: instance.instanceId }
-                        break;
+                newInstance = {
+                    instanceName: instance.instanceName,
+                    instanceId: instance.instanceId,
+                    numUsers: instance.users[+viewYear],
+                    numPixels: instance.pixels[+viewYear]
                 }
             }
             acc.push(newInstance);

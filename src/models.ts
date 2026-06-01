@@ -51,56 +51,102 @@ export interface UserItem {
     pixelsPlaced?: number;
 }
 
+// export class UserRanks {
+//     public instance_id: number;
+//     public username: string;
+//     public rank_2023: number | null = null;
+//     public pixels_2023: number | null = null;
+//     public rank_2024: number | null = null;
+//     public pixels_2024: number | null = null;
+//     public rank_2025: number | null = null;
+//     public pixels_2025: number | null = null;
+//     public rank_2026: number | null = null;
+//     public pixels_2026: number | null = null;
+
+//     constructor(
+//         instance_id: number,
+//         username: string,
+//         rank_2023: number | null,
+//         pixels_2023: number | null,
+//         rank_2024: number | null,
+//         pixels_2024: number | null,
+//         rank_2025: number | null,
+//         pixels_2025: number | null,
+//         rank_2026: number | null,
+//         pixels_2026: number | null
+//     ) {
+//         this.instance_id = instance_id;
+//         this.username = username;
+//         if (rank_2023) {
+//             this.rank_2023 = rank_2023;
+//             this.pixels_2023 = pixels_2023;
+//         }
+//         if (rank_2024) {
+//             this.rank_2024 = rank_2024;
+//             this.pixels_2024 = pixels_2024;
+//         }
+//         if (rank_2025) {
+//             this.rank_2025 = rank_2025;
+//             this.pixels_2025 = pixels_2025
+//         }
+//         if (rank_2026) {
+//             this.rank_2026 = rank_2026;
+//             this.pixels_2026 = pixels_2026;
+//         }
+//     }
+
+//     public yearParticipated() {
+//         let years = [];
+//         if (this.rank_2023) years.push(2023);
+//         if (this.rank_2024) years.push(2024);
+//         if (this.rank_2025) years.push(2025);
+//         return years;
+//     }
+
+//     public numYearsParticipated() {
+//         let numYears = 0;
+//         if (this.rank_2023) numYears += 1;
+//         if (this.rank_2024) numYears += 1;
+//         if (this.rank_2025) numYears += 1;
+//         return numYears;
+//     }
+// }
+
 export class UserRanks {
     public instance_id: number;
     public username: string;
-    public rank_2023: number | null = null;
-    public pixels_2023: number | null = null;
-    public rank_2024: number | null = null;
-    public pixels_2024: number | null = null;
-    public rank_2025: number | null = null;
-    public pixels_2025: number | null = null;
+    public ranks: Record<number, number> = {};
+    public pixels: Record<number, number> = {};
 
     constructor(
         instance_id: number,
         username: string,
-        rank_2023: number | null,
-        pixels_2023: number | null,
-        rank_2024: number | null,
-        pixels_2024: number | null,
-        rank_2025: number | null,
-        pixels_2025: number | null,
+        ranksByYear?: Record<number, number | null>,
+        pixelsByYear?: Record<number, number | null>
     ) {
         this.instance_id = instance_id;
         this.username = username;
-        if (rank_2023) {
-            this.rank_2023 = rank_2023;
-            this.pixels_2023 = pixels_2023;
-        }
-        if (rank_2024) {
-            this.rank_2024 = rank_2024;
-            this.pixels_2024 = pixels_2024;
-        }
-        if (rank_2025) {
-            this.rank_2025 = rank_2025;
-            this.pixels_2025 = pixels_2025
+        if (ranksByYear) {
+            for (const [yearStr, rank] of Object.entries(ranksByYear)) {
+                const year = Number(yearStr);
+                if (rank) {
+                    this.ranks[year] = rank;
+                    const pixelCount = pixelsByYear?.[year];
+                    if (pixelCount) {
+                        this.pixels[year] = pixelCount;
+                    }
+                }
+            }
         }
     }
 
     public yearParticipated() {
-        let years = [];
-        if (this.rank_2023) years.push(2023);
-        if (this.rank_2024) years.push(2024);
-        if (this.rank_2025) years.push(2025);
+        const years = Object.keys(this.ranks).map(Number).sort((a, b) => a - b);
         return years;
     }
 
     public numYearsParticipated() {
-        let numYears = 0;
-        if (this.rank_2023) numYears += 1;
-        if (this.rank_2024) numYears += 1;
-        if (this.rank_2025) numYears += 1;
-        return numYears;
+        return Object.values(this.ranks).reduce((total) => total + 1, 0);
     }
 }
 
@@ -274,65 +320,54 @@ export interface JsonObject {
 
 }
 
+
 export class Instance {
     public instanceId: number;
     public instanceName: string;
-    public users_2023: number | null = null;
-    public users_2024: number | null = null;
-    public users_2025: number | null = null;
-    public users_2026: number | null = null;
-    public pixels_2023: number | null = null;
-    public pixels_2024: number | null = null;
-    public pixels_2025: number | null = null;
-    public pixels_2026: number | null = null;
+    public users: Record<number, number> = {};
+    public pixels: Record<number, number> = {};
 
     constructor(
         instanceId: number,
         instanceName: string,
-        users_2023: number | null,
-        users_2024: number | null,
-        users_2025: number | null,
-        users_2026: number | null,
-        pixels_2023: number | null,
-        pixels_2024: number | null,
-        pixels_2025: number | null,
-        pixels_2026: number | null
+        usersByYear?: Record<number, number | null>,
+        pixelsByYear?: Record<number, number | null>
     ) {
         this.instanceId = instanceId;
         this.instanceName = instanceName;
-        if (users_2023) {
-            this.users_2023 = users_2023;
-            this.pixels_2023 = pixels_2023;
-        }
-        if (users_2024) {
-            this.users_2024 = users_2024;
-            this.pixels_2024 = pixels_2024;
-        }
-        if (users_2025) {
-            this.users_2025 = users_2025;
-            this.pixels_2025 = pixels_2025;
-        }
-        if (users_2026) {
-            this.users_2026 = users_2026;
-            this.pixels_2026 = pixels_2026;
+
+        if (usersByYear) {
+            for (const [yearStr, userCount] of Object.entries(usersByYear)) {
+                const year = Number(yearStr);
+                if (userCount) {
+                    this.users[year] = userCount;
+                    const pixelCount = pixelsByYear?.[year];
+                    if (pixelCount) {
+                        this.pixels[year] = pixelCount;
+                    }
+                }
+            }
         }
     }
-    
 
+    /**
+     * Calculates the sum of all users across all recorded years.
+     * Automatically scales as new years are added.
+     */
     public totalUsers(): number {
-        let total = 0;
-        if (this.users_2023) total += this.users_2023;
-        if (this.users_2024) total += this.users_2024;
-        if (this.users_2025) total += this.users_2025;
-        return total;
+        return Object.values(this.users).reduce((total, count) => total + count, 0);
     }
 
+    /**
+     * Dynamically generates the active years based on pixel data.
+     */
     public yearsActive(): ContentPair[] {
-        let years: ContentPair[] = [];
-        if (this.pixels_2023) years.push({contentKey: "2023", contentValue: getRandomColor(1, true)});
-        if (this.pixels_2024) years.push({contentKey: "2024", contentValue: getRandomColor(2, true)});
-        if (this.pixels_2025) years.push({contentKey: "2025", contentValue: getRandomColor(3, true)});
-        return years;
+        const years = Object.keys(this.users).map(Number).sort((a, b) => a - b);
+        
+        return years.map((year, index) => ({
+            contentKey: year.toString(),
+            contentValue: getRandomColor(index + 1, true) 
+        }));
     }
 }
 

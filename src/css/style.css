@@ -343,6 +343,7 @@ header a:hover {
 
 .center {
     justify-content: center;
+    text-align: center;
 }
 
 .between {

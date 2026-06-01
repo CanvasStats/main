@@ -7,43 +7,49 @@ const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-file
 export async function getAllUsers(): Promise<UserRanks[]> {
     try {
         const userCSVData = await fetchHTML(`${baseURL}/allUserRanking.csv`);
-        if (userCSVData) {
-            //Split the csv file into lines
-            const lines = userCSVData.trim().split('\n');
-            const headers = lines.shift();
-            if (!headers) return [];
-
-            const users: UserRanks[] = [];
-
-            for (const line of lines) {
-                // Split by comma to get individual values
-                const columns = line.split(',');
-                // Ensure the row has the expected number of columns
-                if (columns.length < 5) continue;
-                const [rawInstanceId, username, rawRank2023, rawPixels2023, rawRank2024, rawPixels2024, rawRank2025, rawPixels2025] = columns;
-                // Parse integers, or fall back to null if the CSV column is empty
-                const instance_id = parseInt(rawInstanceId, 10);
-                const rank_2023 = rawRank2023.trim() === '' ? null : parseInt(rawRank2023, 10);
-                const pixels_2023 = rawPixels2023.trim() === '' ? null : parseInt(rawPixels2023, 10);
-                const rank_2024 = rawRank2024.trim() === '' ? null : parseInt(rawRank2024, 10);
-                const pixels_2024 = rawPixels2024.trim() === '' ? null : parseInt(rawPixels2024, 10);
-                const rank_2025 = rawRank2025.trim() === '' ? null : parseInt(rawRank2025, 10);
-                const pixels_2025 = rawPixels2025.trim() === '' ? null : parseInt(rawPixels2025, 10);
-                users.push(new UserRanks(
-                    instance_id,
-                    username.trim(),
-                    rank_2023,
-                    pixels_2023,
-                    rank_2024,
-                    pixels_2024,
-                    rank_2025,
-                    pixels_2025
-                ));
-            }
-            return users;
-        } else {
-            throw new Error("Could not get users. Please try reloading the page");
+        if (!userCSVData) {
+            throw new Error("Could not get instances. Please try reloading the page");
         }
+
+        const lines = userCSVData.trim().split('\n');
+        const headerLine = lines.shift();
+        if (!headerLine) return [];
+        const headers = headerLine.split(',').map(column => column.trim());
+        const users: UserRanks[] = [];
+
+        for (const line of lines) {
+            const columns = line.split(',');
+            if (columns.length < 2) continue;
+            const instanceIdIndex = headers.indexOf('instance_id');
+            const usernameIndex = headers.indexOf('username');
+            const instanceId = parseInt(columns[instanceIdIndex], 10);
+            const username = columns[usernameIndex]?.trim() || '';
+
+            const ranksByYear: Record<number, number | null> = {};
+            const pixelsByYear: Record<number, number | null> = {};
+
+            headers.forEach((header, index) => {
+                const valueStr = columns[index]?.trim();
+                const numericValue = valueStr === '' || !valueStr ? null : parseInt(valueStr, 10);
+
+                if (header.startsWith('rank_')) {
+                    const year = parseInt(header.replace('rank_', ''), 10);
+                    ranksByYear[year] = numericValue;
+                } else if (header.startsWith('pixels_')) {
+                    const year = parseInt(header.replace('pixels_', ''), 10);
+                    pixelsByYear[year] = numericValue;
+                }
+            });
+
+            users.push(new UserRanks(
+                instanceId,
+                username,
+                ranksByYear,
+                pixelsByYear
+            ));
+        }
+
+        return users;
     } catch (error: any) {
         throw new Error("Could not get users. Please try reloading the page");
     }

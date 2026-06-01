@@ -65,17 +65,7 @@ async function loadYearData(viewYear: string): Promise<UserItem[]> {
             if (viewYear === "All") {
                 newUser = { username: user.username, yearsParticipated: user.numYearsParticipated() }
             } else {
-                switch (viewYear) {
-                    case "2023":
-                        if (user.rank_2023 && user.pixels_2023) newUser = { userRank: user.rank_2023, username: user.username, pixelsPlaced: user.pixels_2023 }
-                        break;
-                    case "2024":
-                        if (user.rank_2024 && user.pixels_2024) newUser = { userRank: user.rank_2024, username: user.username, pixelsPlaced: user.pixels_2024 }
-                        break;
-                    case "2025":
-                        if (user.rank_2025 && user.pixels_2025) newUser = { userRank: user.rank_2025, username: user.username, pixelsPlaced: user.pixels_2025 }
-                        break;
-                }
+                newUser = { username: user.username, userRank: user.ranks[+viewYear], pixelsPlaced: user.pixels[+viewYear]}
             }
             acc.push(newUser);
             return acc;
