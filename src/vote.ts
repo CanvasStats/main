@@ -81,6 +81,18 @@ async function updateStats() {
     mainLoader.classList.remove("hide");
     const yearData = await getJsonBlocks(viewYear);
     let colorCounts: ColorCount[] = [];
+    const introBlock = makeElement("article", "intro", "left", null);
+    const introIcon =  makeElement("span", null, "material-symbols-outlined icon", "info");
+    const introInfo = makeElement("section", null, null, null);
+    const firstP = makeElement("p", null, "small", 'There is a section on the homepage and user stats page called "Pixels by color" where you can see the color counts of all the pixels.');
+    const secondP = makeElement("p", null, "small", "You can click on a color to view all of the pixels of that color on the canvas.");
+    const secondPextra = makeElement("p", null, "small", "Both options display a tooltip when you hover over a color.")
+    const thirdP = makeElement("p", null, "small", "Please view the following options and vote on which one you like better.")
+    introInfo.append(firstP, secondP, secondPextra, thirdP);
+    introBlock.append(introIcon, introInfo);
+    statsContainer.appendChild(introBlock);
+
+
     if (yearData) yearData.blocks.forEach((block: any) => {
         if (block.type === "color-grid") {
             loadingText.textContent = "Creating treemap chart";

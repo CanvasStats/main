@@ -38,3 +38,8 @@
   margin-right: 15px;
   font-family: sans-serif;
 }
+
+.small {
+    font-size: 17px;
+    margin: 10px 0;
+}
