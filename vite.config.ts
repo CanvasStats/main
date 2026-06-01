@@ -30,7 +30,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,json}'],
         cleanupOutdatedCaches: true,
-        ignoreURLParametersMatching: [/^id$/, /^year$/, /^user$/, /^search$/, /^sentFrom$/, /^background$/, /^undo$/, /^color$/, /^isTop$/, /^special$/, /^reverse$/, /^username$/, /^utm_/, /^fbclid$/],
+        ignoreURLParametersMatching: [/^id$/, /^term$/, /^year$/, /^user$/, /^search$/, /^sentFrom$/, /^background$/, /^undo$/, /^color$/, /^isTop$/, /^special$/, /^reverse$/, /^username$/, /^utm_/, /^fbclid$/],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',

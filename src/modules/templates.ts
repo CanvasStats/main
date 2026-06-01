@@ -62,7 +62,7 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
         searchContainer.appendChild(searchIcon);
         const searchInput = makeElement("input", "search-input", "search-bar", null) as HTMLInputElement
         searchInput.setAttribute("type", "text");
-        searchInput.setAttribute("placeholder", "Search Users...");
+        searchInput.setAttribute("placeholder", "Search Users or Instances...");
         searchInput.setAttribute("name", "search-input");
         searchContainer.appendChild(searchInput);
         search.appendChild(searchContainer);
