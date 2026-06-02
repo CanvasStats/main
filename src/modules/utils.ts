@@ -2,8 +2,7 @@ import type { Link } from "../models";
 import { navigateTo } from "./navigate";
 
 export function createIconDiv(iconType: string, iconName: string) {
-  const iconDiv = document.createElement('div');
-  iconDiv.setAttribute('class', 'icon');
+  const iconDiv = makeElement("div", null, "icon", null);
   if (iconType === "icon") {
     const icon = document.createElement('span');
     icon.setAttribute('class', 'material-symbols-outlined');
@@ -25,8 +24,7 @@ export function createExternalLink(liWrapper: boolean, linkHref: string, linkTex
     const newLi = document.createElement('li');
     newLi.appendChild(newA);
     if (largeScreeText) {
-      const largeScreenSpan = document.createElement('span');
-      largeScreenSpan.setAttribute('class', 'large-screens-only');
+      const largeScreenSpan = makeElement("span", null, 'large-screens-only', null);
       largeScreenSpan.textContent = largeScreeText;
       newLi.appendChild(largeScreenSpan);
     }
@@ -44,9 +42,7 @@ export function createLinkButton(color: string, href: string, linkText: string, 
     newLinkButton.setAttribute('target', '_blank');
   }
   if (iconName) {
-    const icon = document.createElement('span');
-    icon.setAttribute('class', 'material-symbols-outlined');
-    icon.textContent = iconName;
+    const icon = makeElement("span", null, "material-symbols-outlined", iconName);
     newLinkButton.appendChild(icon);
   }
   const linkTextNode = document.createTextNode(linkText);
@@ -79,9 +75,7 @@ export function createButton(buttonColor: string, buttonText: string, iconName?:
   const newButton = document.createElement("button");
   newButton.setAttribute('class', `btn ${buttonColor}`);
   if (iconName) {
-    const icon = document.createElement('span');
-    icon.setAttribute('class', 'material-symbols-outlined');
-    icon.textContent = iconName;
+    const icon = makeElement("span", null, "material-symbols-outlined", iconName);
     newButton.appendChild(icon);
   }
   const buttonTextNode = document.createTextNode(buttonText);
@@ -371,10 +365,8 @@ export function createMessage(message: string, location: string, type: string) {
     messageDiv.setAttribute("class", "info message");
     messageDiv.setAttribute("aria-live", "polite");
   }
-  const icon = document.createElement("span");
-  icon.setAttribute("class", "material-symbols-outlined");
-  const iconName = document.createTextNode(type);
-  icon.appendChild(iconName);
+  const icon = makeElement("span", null, "material-symbols-outlined", type);
+  document.createElement("span");
   messageDiv.appendChild(icon);
   const messageText = document.createTextNode(message);
   messageDiv.appendChild(messageText);

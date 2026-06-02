@@ -97,8 +97,7 @@ async function updateStats() {
         if (block.type === "color-grid") {
             loadingText.textContent = "Creating treemap chart";
             colorCounts = mapColorCountJsonToInterface(block.data);
-            const treemap = makeElement("article", null, "right treemap", null)
-
+            const treemap = makeElement("article", null, "right treemap", null);
             const treemapContainer = document.createElement('div');
             treemapContainer.setAttribute('class', 'colorCountsPieChart');
             treemapContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
@@ -110,7 +109,6 @@ async function updateStats() {
                 treemapTitle.appendChild(statHeader);
             }
             treemap.appendChild(treemapTitle);
-
             statsContainer.appendChild(treemap);
             createColorTreemap(treemapContainer, colorCounts, true, viewYear);
 

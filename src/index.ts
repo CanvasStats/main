@@ -1,7 +1,7 @@
 import { getYear, initializeApp } from "./main";
 import { ContentPair, type ColorCount, type JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
-import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
+import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { addLoadingElement, clearMessages, comingSoonBlock, createSocialBlock, getRandomColor, makeElement } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
 
@@ -71,7 +71,7 @@ async function updateStats() {
 
     if (viewYear === 2026) {
         comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z");
-        const socialBlock = createSocialBlock("right", "Stay Connected", "public", );
+        const socialBlock = createSocialBlock("right", "Stay Connected", "public",);
         statsContainer.appendChild(socialBlock);
     } else {
         const yearData = await getJsonBlocks(viewYear);
@@ -80,28 +80,23 @@ async function updateStats() {
         if (yearData) yearData.blocks.forEach((block: any) => {
             const structure = getBlockStructure(block, viewYear);
             if (block.type === "color-grid") {
-                loadingText.textContent = "Creating pie chart";
+                loadingText.textContent = "Creating treemap chart";
                 colorCounts = mapColorCountJsonToInterface(block.data);
-                const colorStat = document.createElement('article');
-                colorStat.setAttribute('class', `${block.layout} colorStat`);
+                const treemap = makeElement("article", null, "right treemap", null);
+                const treemapContainer = makeElement("div", null, 'colorCountsPieChart', null)
+                treemapContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
+                treemap.appendChild(treemapContainer);
 
-                const pieChartContainer = document.createElement('div');
-                pieChartContainer.setAttribute('class', 'colorCountsPieChart');
-                pieChartContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
-                colorStat.appendChild(pieChartContainer);
-
-                const statSection = document.createElement('section');
-                statSection.setAttribute('class', 'color-section');
+                const treemapTitle = makeElement("section", null, 'color-section', null);
                 if (block.title) {
-                    const statHeader = makeElement("h3", null, null, block.title);
-                    statSection.appendChild(statHeader);
-                }
-                const toolTip = makeElement("div", "chart-tooltip", 'chart-tooltip', null);
-                statSection.appendChild(toolTip);
-                colorStat.appendChild(statSection);
+                    const clickP = makeElement("p", null, "text", "Click on a color to view the pixels on the canvas");
 
-                statsContainer.appendChild(colorStat);
-                createColorCountPieChart(viewYear, colorCounts, pieChartContainer, true, "slice-clickable");
+                    const statHeader = makeElement("h3", null, null, "Pixels by Color");
+                    treemapTitle.append(statHeader, clickP);
+                }
+                treemap.appendChild(treemapTitle);
+                statsContainer.appendChild(treemap);
+                createColorTreemap(treemapContainer, colorCounts, true, viewYear);
 
             } else if (block.type === "graph") {
                 loadingText.textContent = "Creating line graph";

@@ -220,33 +220,51 @@ export function createColorTreemap(
         .join('g')
         .attr('transform', d => `translate(${d.x0},${d.y0})`);
 
-    cell.append('rect')
-        .attr('width', d => d.x1 - d.x0)
-        .attr('height', d => d.y1 - d.y0)
-        .attr('fill', d => d.data.hex)
-        .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
-        .style('cursor', 'pointer')
-        .on("click", (_event, d) => {
-            if (isLink) {
+    if (isLink) {
+        cell.append('rect')
+            .attr('width', d => d.x1 - d.x0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('fill', d => d.data.hex)
+            .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
+            .style('cursor', 'pointer')
+            .on("click", (_event, d) => {
                 if (d.data.class === "white") {
                     navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year } });
                 } else {
                     navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year } });
                 }
-            }
-        })
-        .on('mouseover', function () {
-            tooltip.style('visibility', 'visible');
-        })
-        .on('mousemove', function (event, d) {
-            tooltip
-                .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
-                .style('top', (event.pageY - 40) + 'px')
-                .style('left', (event.pageX + 15) + 'px');
-        })
-        .on('mouseout', function () {
-            tooltip.style('visibility', 'hidden');
-        });
+            })
+            .on('mouseover', function () {
+                tooltip.style('visibility', 'visible');
+            })
+            .on('mousemove', function (event, d) {
+                tooltip
+                    .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
+                    .style('top', (event.pageY - 40) + 'px')
+                    .style('left', (event.pageX + 15) + 'px');
+            })
+            .on('mouseout', function () {
+                tooltip.style('visibility', 'hidden');
+            });
+    } else {
+        cell.append('rect')
+            .attr('width', d => d.x1 - d.x0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('fill', d => d.data.hex)
+            .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
+            .on('mouseover', function () {
+                tooltip.style('visibility', 'visible');
+            })
+            .on('mousemove', function (event, d) {
+                tooltip
+                    .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
+                    .style('top', (event.pageY - 40) + 'px')
+                    .style('left', (event.pageX + 15) + 'px');
+            })
+            .on('mouseout', function () {
+                tooltip.style('visibility', 'hidden');
+            });
+    }
 
     const textBlock = cell.append('text')
         .attr('x', 5)

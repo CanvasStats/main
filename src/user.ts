@@ -1,7 +1,7 @@
 import { initializeApp } from "./main";
 import type { ColorCount, ContentPair, DataRow, JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
-import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
+import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createMessage, makeElement, storeMessage } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
@@ -104,26 +104,22 @@ async function updateStats() {
     if (userData) {
         const usernameHeading = makeElement("h2", null, null, username);
         statsContainer.appendChild(usernameHeading);
-        const pieChartContainer = document.createElement('div');
         userData.blocks.forEach(async (block: any) => {
             const structure = getBlockStructure(block, viewYear);
             if (block.type === "user-color-grid") {
                 loadingText.textContent = "Creating pie chart";
-                const colorStat = document.createElement('article');
-                colorStat.setAttribute('class', `${block.layout} colorStat`);
-
-                pieChartContainer.setAttribute('id', 'colorCountsPieChart');
-                colorStat.appendChild(pieChartContainer);
-                const statSection = document.createElement('section');
-                statSection.setAttribute('class', 'color-section');
+                const colorStat = makeElement("article", null, "right treemap", null);
+                const treemapContainer = document.createElement('div');
+                treemapContainer.setAttribute('class', 'colorCountsPieChart');
+                treemapContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
+                colorStat.appendChild(treemapContainer);
                 if (block.title) {
                     const statHeader = makeElement("h3", null, null, block.title);
-                    statSection.appendChild(statHeader);
+                    colorStat.appendChild(statHeader);
                 }
-                const toolTip = makeElement("div", "chart-tooltip", 'chart-tooltip center', null);
-                statSection.appendChild(toolTip);
-                colorStat.appendChild(statSection);
                 statsContainer.appendChild(colorStat);
+                if (userColorCounts) createColorTreemap(treemapContainer, userColorCounts, false, viewYear);
+                
             } else if (block.type === "graph") {
                 loadingText.textContent = "Creating line graph";
                 const graphStat = makeElement("article", null, block.layout, null);
@@ -137,7 +133,6 @@ async function updateStats() {
                 statSection.appendChild(graphContainer);
                 graphStat.appendChild(statSection);
                 statsContainer.appendChild(graphStat);
-                if (userColorCounts) createColorCountPieChart(2025, userColorCounts, pieChartContainer, false, "slice");
                 if (pixelsPerHour) createLineGraph(pixelsPerHour, graphContainer);
             } else {
                 renderTree(structure, statsContainer);

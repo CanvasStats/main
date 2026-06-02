@@ -1,6 +1,6 @@
 import { initializeApp } from "./main";
 import type { ContentPair, DataRow, Instance, UserItem } from "./models";
-import { createColorCountPieChart, createLineGraph } from "./modules/d3Graphics";
+import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createButton, createMessage, makeElement, storeMessage } from "./modules/utils";
 import { getAllUsersForInstance, getColorCountsForInstance, getFinalPixelsCountForInstance, getInstanceForId, getInstanceNameForId, getPixelsForInstance, getPixelsPerHourForInstance } from "./services/instances.service";
@@ -136,21 +136,17 @@ async function updateStats() {
         finalArticle.append(finalIcon, finalInfo);
         statsContainer.appendChild(finalArticle);
 
-        loadingText.textContent = "Counting colors"
-        const colorStat = makeElement("article", null, "right colorStat", null);
-        const colorCounts = await getColorCountsForInstance(instancePixels)
-        const pieChartContainer = document.createElement('div');
-        pieChartContainer.setAttribute('id', 'colorCountsPieChart');
-        colorStat.appendChild(pieChartContainer);
-        const colorStatSection = document.createElement('section');
-        colorStatSection.setAttribute('class', 'color-section');
-        const colorStatHeader = makeElement("h3", null, null, "Pixels by color");
-        colorStatSection.appendChild(colorStatHeader);
-        const toolTip = makeElement("div", "chart-tooltip", 'chart-tooltip center', null);
-        colorStatSection.appendChild(toolTip);
-        colorStat.appendChild(colorStatSection);
+        loadingText.textContent = "Counting colors";
+        const colorCounts = await getColorCountsForInstance(instancePixels);
+        const colorStat = makeElement("article", null, "right treemap", null);
+        const treemapContainer = document.createElement('div');
+        treemapContainer.setAttribute('class', 'colorCountsPieChart');
+        treemapContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
+        colorStat.appendChild(treemapContainer);
+        const treemapHeader = makeElement("h3", null, null, "Pixels by Color");
+        colorStat.append(treemapContainer, treemapHeader);
         statsContainer.appendChild(colorStat);
-        createColorCountPieChart(2025, colorCounts, pieChartContainer, false, "slice");
+        if (colorCounts) createColorTreemap(treemapContainer, colorCounts, false, +viewYear);
 
         loadingText.textContent = "Calculating pixels placed per hour";
         const graphStat = makeElement("article", null, "left", null);
