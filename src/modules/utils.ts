@@ -131,7 +131,7 @@ const HEX_MAP = Object.fromEntries(
 );
 
 export function convertColor(input: string): string {
-    const cleanInput = input.trim();
+    const cleanInput = input.trim().replaceAll("-", " ");
     if (cleanInput.startsWith('#')) {
         return HEX_MAP[cleanInput.toUpperCase()] || 'unknown color';
     }
@@ -260,7 +260,7 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
     const templateInfo = makeElement("section", null, null, null);
     const templateP = makeElement("p", null, "text", null);
     if (!initialRemainingToStart.isFinished) {
-      templateP.textContent = "You can start planning your designs by using the Template feature in Canvas's setting or use @mf_h's team template tool";
+      templateP.textContent = "You can start planning your designs by using the Template feature in Canvas's setting or use @mf_h's CoTemplate tool";
     } else {
       templateP.textContent = "The more pixels you place, the higher your rank, so go place some pixels!"
     }
