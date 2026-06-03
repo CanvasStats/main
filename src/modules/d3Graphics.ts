@@ -167,16 +167,16 @@ interface TreemapRoot {
 export function createColorTreemap(
     selector: HTMLElement,
     data: ColorCount[],
+    aspectRatio: number,
     isLink: boolean,
     year: number
-): void {
+): () => void {
     const container = d3.select(selector);
     container.selectAll('*').remove();
+    container.style('position', 'relative');
 
     let tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-
     const existingTooltip = d3.select<HTMLDivElement, unknown>('#treemap-tooltip');
-
     if (existingTooltip.empty()) {
         tooltip = d3.select('body')
             .append('div')
@@ -195,93 +195,107 @@ export function createColorTreemap(
         tooltip = existingTooltip;
     }
 
-    const rootData: TreemapRoot = { name: "root", children: data };
-    const root = d3.hierarchy<TreemapRoot>(rootData)
-        .sum((d: any) => d.count)
-        .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+    function render(width: number) {
+        const height = width * aspectRatio;
+        container.selectAll('svg').remove();
+        const rootData: TreemapRoot = { name: "root", children: data };
+        const root = d3.hierarchy<TreemapRoot>(rootData)
+            .sum((d: any) => d.count)
+            .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
 
-    d3.treemap<TreemapRoot>()
-        .size([800, 500])
-        .padding(2)
-        (root);
+        d3.treemap<TreemapRoot>()
+            .size([width, height])
+            .padding(2)
+            (root);
 
-    const svg = container
-        .append('svg')
-        .attr('viewBox', `0 0 800 500`)
-        .attr('width', '100%')
-        .attr('height', 'auto')
-        .style('display', 'block')
-        .style('max-width', '100%');
+        const svg = container
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('display', 'block');
 
-    const leaves = root.leaves() as d3.HierarchyRectangularNode<any>[];
+        const leaves = root.leaves() as d3.HierarchyRectangularNode<any>[];
 
-    const cell = svg.selectAll('g')
-        .data(leaves)
-        .join('g')
-        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+        const cell = svg.selectAll('g')
+            .data(leaves)
+            .join('g')
+            .attr('transform', d => `translate(${d.x0},${d.y0})`);
 
-    if (isLink) {
-        cell.append('rect')
-            .attr('width', d => d.x1 - d.x0)
-            .attr('height', d => d.y1 - d.y0)
-            .attr('fill', d => d.data.hex)
-            .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
-            .style('cursor', 'pointer')
-            .on("click", (_event, d) => {
-                if (d.data.class === "white") {
-                    navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year } });
-                } else {
-                    navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year } });
-                }
-            })
-            .on('mouseover', function () {
-                tooltip.style('visibility', 'visible');
-            })
-            .on('mousemove', function (event, d) {
-                tooltip
-                    .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
-                    .style('top', (event.pageY - 40) + 'px')
-                    .style('left', (event.pageX + 15) + 'px');
-            })
-            .on('mouseout', function () {
-                tooltip.style('visibility', 'hidden');
-            });
-    } else {
-        cell.append('rect')
-            .attr('width', d => d.x1 - d.x0)
-            .attr('height', d => d.y1 - d.y0)
-            .attr('fill', d => d.data.hex)
-            .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
-            .on('mouseover', function () {
-                tooltip.style('visibility', 'visible');
-            })
-            .on('mousemove', function (event, d) {
-                tooltip
-                    .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
-                    .style('top', (event.pageY - 40) + 'px')
-                    .style('left', (event.pageX + 15) + 'px');
-            })
-            .on('mouseout', function () {
-                tooltip.style('visibility', 'hidden');
-            });
+        if (isLink) {
+            cell.append('rect')
+                .attr('width', d => d.x1 - d.x0)
+                .attr('height', d => d.y1 - d.y0)
+                .attr('fill', d => d.data.hex)
+                .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
+                .style('cursor', 'pointer')
+                .on("click", (_event, d) => {
+                    if (d.data.class === "white") {
+                        navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year } });
+                    } else {
+                        navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year } });
+                    }
+                })
+                .on('mouseover', function () {
+                    tooltip.style('visibility', 'visible');
+                })
+                .on('mousemove', function (event, d) {
+                    tooltip
+                        .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
+                        .style('top', (event.pageY - 40) + 'px')
+                        .style('left', (event.pageX + 15) + 'px');
+                })
+                .on('mouseout', function () {
+                    tooltip.style('visibility', 'hidden');
+                });
+        } else {
+            cell.append('rect')
+                .attr('width', d => d.x1 - d.x0)
+                .attr('height', d => d.y1 - d.y0)
+                .attr('fill', d => d.data.hex)
+                .attr('stroke', d => d.data.label.toLowerCase() === 'white' ? '#ccc' : 'none')
+                .on('mouseover', function () {
+                    tooltip.style('visibility', 'visible');
+                })
+                .on('mousemove', function (event, d) {
+                    tooltip
+                        .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
+                        .style('top', (event.pageY - 40) + 'px')
+                        .style('left', (event.pageX + 15) + 'px');
+                })
+                .on('mouseout', function () {
+                    tooltip.style('visibility', 'hidden');
+                });
+        }
+
+        cell.append('text')
+            .attr('x', 5)
+            .attr('y', 15)
+            .text((d: any) => `${d.data.label} (${d.data.count.toLocaleString()})`)
+            .style('font-size', '11px')
+            .style('font-family', 'sans-serif')
+            .style('font-weight', 'bold')
+            .attr('fill', d => ['white', 'yellow', 'pastel yellow', 'aqua'].includes(d.data.label.toLowerCase()) ? '#000' : '#fff')
+            .style('pointer-events', 'none')
+            .style('display', d => (d.x1 - d.x0 < 90 || d.y1 - d.y0 < 25) ? 'none' : 'block');
     }
 
-    const textBlock = cell.append('text')
-        .attr('x', 5)
-        .attr('y', 15)
-        .style('font-size', '11px')
-        .style('font-family', 'sans-serif')
-        .style('font-weight', 'bold')
-        .attr('fill', d => ['white', 'light grey', 'brown', 'peach', 'beige', 'pink', 'magenta', 'mauve', 'aqua', 'green', 'lime', 'pastel yellow', 'yellow', 'orange', 'azure', 'watermelon'].includes(d.data.label.toLowerCase()) ? '#000' : '#fff')
-        .style('display', d => (d.x1 - d.x0 < 70 || d.y1 - d.y0 < 35) ? 'none' : 'block');
+    const htmlElement = container.node() as HTMLElement;
 
-    textBlock.append('tspan')
-        .text((d: any) => d.data.label);
+    render(htmlElement.clientWidth || 800);
 
-    textBlock.append('tspan')
-        .attr('x', 5)
-        .attr('dy', '1.2em')
-        .style('font-weight', 'normal')
-        .style('opacity', 0.8)
-        .text((d: any) => d.data.count.toLocaleString());
+    const resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+            const newWidth = entry.contentRect.width;
+            if (newWidth > 0) {
+                render(newWidth);
+            }
+        }
+    });
+
+    resizeObserver.observe(htmlElement);
+
+    return () => {
+        resizeObserver.disconnect();
+        tooltip.remove();
+    };
 }

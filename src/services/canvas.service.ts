@@ -83,7 +83,6 @@ export async function getPixelDataForYear(year: number) {
 export async function getPixelsForDraw(params: DrawParams) {
     let pixels = await getPixelDataForYear(params['year']);
     if (pixels) {
-        console.log(`params: ${params['color']}, pixel: ${JSON.stringify(pixels[0])}`)
         //Get just the user's pixels
         if (params['username']) {
             pixels = pixels.filter(pixel => pixel['username'].toLowerCase() === params['username']?.toLowerCase());

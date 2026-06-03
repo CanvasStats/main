@@ -110,7 +110,8 @@ async function updateStats() {
             }
             treemap.appendChild(treemapTitle);
             statsContainer.appendChild(treemap);
-            createColorTreemap(treemapContainer, colorCounts, true, viewYear);
+            const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
+            createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear);
 
             loadingText.textContent = "Creating pie chart";
             colorCounts = mapColorCountJsonToInterface(block.data);
