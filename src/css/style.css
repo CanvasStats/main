@@ -756,7 +756,8 @@ footer {
     }
 }
 @media only screen and (max-width: 730px) {
-    #drawHeader {
+    #drawHeader,
+    #loading-main #wrapper {
         flex-direction: column;
     }
     article {

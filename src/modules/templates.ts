@@ -54,8 +54,6 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
     });
     //Search
     if (showSearch) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlSearchTerm: string | null = urlParams.get("term");
         const search = document.getElementById("search") as HTMLFormElement;
         const searchContainer = makeElement("div", "search-container", "search-bar-container", null);
         const searchIcon = makeElement("span", null, "material-symbols-outlined", "search");
@@ -71,21 +69,28 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
         search.addEventListener("submit", (e) => {
             e.preventDefault();
             const formData = new FormData(search);
-            const searchTerm = formData.get("search-input");
-            if (searchTerm && searchTerm.toString().trim() !== "" && urlSearchTerm?.trim() !== searchTerm.toString().trim()) {
-                navigateTo("/search", { params: { term: searchTerm.toString().trim() } });
+            const rawValue = formData.get("search-input");
+            if (!rawValue) return;
+            const term = rawValue.toString().trim();
+            if (!term) return;
+            const colonIndex = term.indexOf(":");
+
+            if (colonIndex !== -1) {
+                const prefix = term.substring(0, colonIndex).trim().toLowerCase();
+                const value = term.substring(colonIndex + 1).trim();
+                if (prefix === "u" || prefix === "user") {
+                    navigateTo("/users", { params: { username: value } });
+                    return;
+                }
+
+                if (prefix === "i" || prefix === "instance") {
+                    navigateTo("/instances/", { params: { name: value } });
+                    return;
+                }
             }
+            navigateTo("/search", { params: { term: term } });
         });
         search.appendChild(searchButton);
-        if (urlSearchTerm && urlSearchTerm.trim() !== '') {
-            const clearButton = makeElement("button", "clear-button", "btn red", "clear");
-            clearButton.setAttribute("type", "button");
-            clearButton.onclick = function() {
-                navigateTo("/users");
-            }
-            search.appendChild(clearButton);
-            searchInput.value = urlSearchTerm.trim();
-        }
     }
 }
 

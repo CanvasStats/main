@@ -6,9 +6,8 @@ import { getYears } from "./services/canvas.service";
 import { getAllInstances } from "./services/instances.service";
 import { getAllUsers } from "./services/users.service";
 
-
 const urlParams = new URLSearchParams(window.location.search);
-const searchTerm: string | null = urlParams.get("term");
+let searchTerm: string | null | undefined = urlParams.get("term");
 
 let instanceList: Instance[] = await getAllInstances();
 let userList: UserRanks[] = await getAllUsers();
@@ -18,7 +17,25 @@ const years = getYears(true);
 
 const main = document.querySelector("main") as HTMLElement;
 
-await initializeApp("Search", "Search", true);
+await initializeApp("Search", "Search", false);
+
+const search = document.getElementById("search") as HTMLElement;
+const searchContainer = makeElement("div", "search-container", "search-bar-container", null);
+const searchIcon = makeElement("span", null, "material-symbols-outlined", "search");
+searchContainer.appendChild(searchIcon);
+const searchInput = makeElement("input", "search-input", "search-bar", null) as HTMLInputElement
+searchInput.setAttribute("type", "text");
+searchInput.setAttribute("placeholder", "Search Users or Instances...");
+if (searchTerm) searchInput.value = searchTerm;
+searchInput.setAttribute("name", "search-input");
+searchContainer.appendChild(searchInput);
+search.appendChild(searchContainer);
+search.addEventListener("input", (e) => {
+    e.preventDefault();
+    searchTerm = searchInput.value.toString();
+    updateResults()
+});
+
 const returnToTopArrow = document.getElementById("return-to-top") as HTMLElement;
 const randomColor = getRandomColor(1, true);
 returnToTopArrow.classList.add(randomColor);
@@ -58,7 +75,8 @@ function updateResults() {
     if (noResults) noResults.remove();
 
     if (searchTerm && searchTerm.trim() !== "") {
-        let matchingInstances = instanceList.filter(instance => instance.instanceName.toLowerCase().includes(searchTerm.trim().toLowerCase()));
+        const term = searchTerm.trim().toLowerCase();
+        let matchingInstances = instanceList.filter(instance => instance.instanceName.toLowerCase().includes(term));
         if (viewYear !== "All") {
             matchingInstances = matchingInstances.filter(instance => instance.users[+viewYear]);
         }
@@ -82,7 +100,7 @@ function updateResults() {
             instances.append(instanceHeading, colHeadings, instanceResults);
             main.appendChild(instances);
         }
-        let matchingUsers = userList.filter(user => user.username.toLowerCase().includes(searchTerm.trim().toLowerCase()));
+        let matchingUsers = userList.filter(user => user.username.toLowerCase().includes(term));
         if (viewYear !== "All") {
             matchingUsers = matchingUsers.filter(user => user.ranks[+viewYear]);
         }

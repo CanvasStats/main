@@ -71,7 +71,7 @@ async function updateStats() {
 
     if (viewYear === 2026) {
         comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z");
-        const socialBlock = createSocialBlock("right", "Stay Connected", "public",);
+        const socialBlock = createSocialBlock("right", "Stay Connected", "public", viewYear);
         statsContainer.appendChild(socialBlock);
     } else {
         const yearData = await getJsonBlocks(viewYear);
@@ -116,7 +116,7 @@ async function updateStats() {
 
                 createLineGraph(pixelPerMinuteURL, graphContainer);
             } else if (block.type === "social") {
-                const socialBlock = createSocialBlock(block.layout, block.title, block.icon);
+                const socialBlock = createSocialBlock(block.layout, block.title, block.icon, viewYear);
                 statsContainer.appendChild(socialBlock);
             } else {
                 renderTree(structure, statsContainer);

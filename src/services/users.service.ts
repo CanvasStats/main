@@ -114,20 +114,6 @@ export async function getUserStats(username: string, year: number) {
                         ]
                     },
                     {
-                        type: "user-color-grid",
-                        layout: "right",
-                        title: "Pixels by color",
-                        data: []
-                    },
-                    {
-                        type: "standard",
-                        layout: "left",
-                        icon: "colors",
-                        content: [
-                            `You used ${await getNumColorsUsedForUsername(year, username)} out of the ${year === 2023 ? "32" : "34"} colors`
-                        ]
-                    },
-                    {
                         type: "standard",
                         layout: "right",
                         icon: "grid_view",
@@ -141,6 +127,20 @@ export async function getUserStats(username: string, year: number) {
                         icon: "arrow_shape_up_stack_2",
                         content: [
                             `${topCount} of your pixels (${((topCount / user['pixelCount']) * 100).toFixed(2)}%) made it to the final image at the end of the event`
+                        ]
+                    },
+                    {
+                        type: "user-color-grid",
+                        layout: "right",
+                        title: "Pixels by color",
+                        data: []
+                    },
+                    {
+                        type: "standard",
+                        layout: "left",
+                        icon: "colors",
+                        content: [
+                            `You used ${await getNumColorsUsedForUsername(year, username)} out of the ${year === 2023 ? "32" : "34"} colors`
                         ]
                     },
                     {
