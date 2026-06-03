@@ -611,6 +611,7 @@ section {
 .canvas {
     width: 100%;
     image-rendering: pixelated;
+    border: 1px solid var(--text-root);
 }
 
 .top-users {

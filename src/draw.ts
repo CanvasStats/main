@@ -39,7 +39,7 @@ let username: string = "";
 let filename: string = "";
 let background = backgroundString ? backgroundString : "white";
 let pixelsToDraw: Pixel[] = [];
-let reverse: boolean = reverseString ? true: false;
+let reverse: boolean = reverseString ? true : false;
 let undo: boolean | null = null;
 if (undoString === "true") {
     undo = true;
@@ -79,7 +79,7 @@ if (sentFrom) {
         returnToUserButton.addEventListener('click', () => navigateTo('/user', { params: { year: viewYear, username: username } }));
         headerButtons.appendChild(returnToUserButton);
         drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
-        filename = `${username}-pixels-${viewYear}`
+        filename = `${username.split("@")[0]}-pixels-${viewYear}`
     }
     //  else if (sentFrom === "search") {
     //     //Create a button to return to the search page
@@ -97,12 +97,15 @@ if (sentFrom) {
 
 drawHeader.append(headerButtons, drawTitle);
 mainLoaderPlaceholder.replaceWith(mainLoader);
+
+const backgroundColors = ["white", "black", "transparent"];
+
 const loading = document.getElementById("loading");
 if (loading) loading.remove();
 main.classList.remove("hide");
 mainLoader.classList.remove("hide");
 
-const pixelData = await getPixelsForDraw(new DrawParams(viewYear, usernameString,  undo, color, specialString, topOnly));
+const pixelData = await getPixelsForDraw(new DrawParams(viewYear, usernameString, undo, color, specialString, topOnly));
 if (pixelData) pixelsToDraw = pixelData;
 
 //Set the Canvas dimensions for the year
@@ -117,54 +120,91 @@ if (viewYear === 2023) {
     canvasWidth = 500;
 }
 
-if (pixelsToDraw.length > 0) {
-    canvasElement.setAttribute('width', `${canvasWidth}`);
-    canvasElement.setAttribute('height', `${canvasHeight}`);
-    if (context) {
-        //Set the background
-        if (background === "black") {
-            context.fillStyle = "#000000";
-            context.fillRect(0, 0, canvasWidth, canvasHeight);
-        } else if (background !== "transparent") {
-            context.fillStyle = "#ffffff";
-            context.fillRect(0, 0, canvasWidth, canvasHeight);
-        }
-        //Draw the pixels
-        if (!reverse) {
-            pixelsToDraw.forEach(pixel => {
-                setTimeout(() => {
-                    context.fillStyle = pixel['colorHex'];
-                    context.fillRect(pixel['xCoordinate'], pixel['yCoordinate'], 1, 1);
-                }, 2000);
-            });
+function drawCanvas() {
+
+
+    mainLoader.classList.remove("hide");
+    const existingDownloadBtn = document.getElementById("download-btn");
+    if (existingDownloadBtn) existingDownloadBtn.remove();
+
+    const existingButtonRow = document.getElementById("redraw-buttons");
+    if (existingButtonRow) existingButtonRow.remove();
+    const redrawButtonRow = backgroundColors.reduce((acc: HTMLElement, color: string) => {
+        let button = makeElement("button", null, null, `${color} background`);
+        if (color === "transparent") {
+            button.className = "btn dark-grey";
         } else {
-            const l = pixelsToDraw.length - 1;
-            for (let i = l; i >= 0; i--) {
-                setTimeout(() => {
-                    context.fillStyle = pixelsToDraw[i]['colorHex'];
-                    context.fillRect(pixelsToDraw[i]['xCoordinate'], pixelsToDraw[i]['yCoordinate'], 1, 1);
-                }, 2000);
+            button.className = `btn ${color}`;
+        }
+        if (background === color) {
+            Array.from(acc.children).forEach((child) => {
+                child.classList.remove("active-year");
+            });
+            button.classList.add("active-year");
+        } else {
+            button.onclick = function () {
+                background = color;
+                drawCanvas();
             }
         }
+
+        acc.appendChild(button);
+        return acc;
+    }, makeElement("section", "redraw-buttons", "button-row center", null));
+    drawHeader.appendChild(redrawButtonRow);
+
+    if (pixelsToDraw.length > 0) {
+        canvasElement.setAttribute('width', `${canvasWidth}`);
+        canvasElement.setAttribute('height', `${canvasHeight}`);
+        if (context) {
+            //Set the background
+            if (background === "black") {
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, canvasWidth, canvasHeight);
+            } else if (background !== "transparent") {
+                context.fillStyle = "#ffffff";
+                context.fillRect(0, 0, canvasWidth, canvasHeight);
+            }
+            //Draw the pixels
+            if (!reverse) {
+                pixelsToDraw.forEach(pixel => {
+                    setTimeout(() => {
+                        context.fillStyle = pixel['colorHex'];
+                        context.fillRect(pixel['xCoordinate'], pixel['yCoordinate'], 1, 1);
+                    }, 2000);
+                });
+            } else {
+                const l = pixelsToDraw.length - 1;
+                for (let i = l; i >= 0; i--) {
+                    setTimeout(() => {
+                        context.fillStyle = pixelsToDraw[i]['colorHex'];
+                        context.fillRect(pixelsToDraw[i]['xCoordinate'], pixelsToDraw[i]['yCoordinate'], 1, 1);
+                    }, 2000);
+                }
+            }
+        }
+        const downloadButton = createButton("green", "Download your image", "download");
+        downloadButton.setAttribute("id", "download-btn");
+        downloadButton.addEventListener('click', () => downloadImage());
+        headerButtons.appendChild(downloadButton);
+    } else {
+        drawTitle.textContent = "You have filtered out all the pixels!";
+        canvasElement.classList.add("hide");
     }
-    const downloadButton = createButton("green", "Download your image", "download");
-    downloadButton.addEventListener('click', () => downloadImage());
-    headerButtons.appendChild(downloadButton);
-} else {
-    drawTitle.textContent = "You have filtered out all the pixels!";
-    canvasElement.classList.add("hide");
+    mainLoader.classList.add("hide");
 }
-mainLoader.classList.add("hide");
 
 function downloadImage() {
     try {
         const dataURL = canvasElement.toDataURL("image/png");
         const a = document.createElement('a');
         a.href = dataURL;
-        a.download = filename + '.png';
+        a.download = `${filename}-${background}.png`
         a.click();
     } catch (error) {
-        createMessage(`Error occurred while downloading ${filename}.png. Please try reloading the page`, "main-message", "error");
+        createMessage(`Error occurred while downloading ${filename}-${background}.png. Please try reloading the page`, "main-message", "error");
         console.error("Error during download:", error);
     }
 }
+
+drawCanvas();
