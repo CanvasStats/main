@@ -105,6 +105,11 @@ function updateResults() {
             matchingUsers = matchingUsers.filter(user => user.ranks[+viewYear]);
         }
         if (matchingUsers.length > 0) {
+            matchingUsers.sort((a, b) => {
+                const rankA = a.ranks[+viewYear] ?? Infinity;
+                const rankB = b.ranks[+viewYear] ?? Infinity;
+                return rankA - rankB;
+            });
             const users = makeElement("div", "users", null, null);
             const userHeading = makeElement("h2", "user-heading", "center", `${matchingUsers.length} User${matchingUsers.length === 1 ? '' : 's'} containing "${searchTerm.trim()}"`);
             const colHeadings = makeElement("div", "user-list-heading", null, null);

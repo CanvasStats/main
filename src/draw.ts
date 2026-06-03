@@ -168,18 +168,14 @@ function drawCanvas() {
             //Draw the pixels
             if (!reverse) {
                 pixelsToDraw.forEach(pixel => {
-                    setTimeout(() => {
-                        context.fillStyle = pixel['colorHex'];
-                        context.fillRect(pixel['xCoordinate'], pixel['yCoordinate'], 1, 1);
-                    }, 2000);
+                    context.fillStyle = pixel['colorHex'];
+                    context.fillRect(pixel['xCoordinate'], pixel['yCoordinate'], 1, 1);
                 });
             } else {
                 const l = pixelsToDraw.length - 1;
                 for (let i = l; i >= 0; i--) {
-                    setTimeout(() => {
-                        context.fillStyle = pixelsToDraw[i]['colorHex'];
-                        context.fillRect(pixelsToDraw[i]['xCoordinate'], pixelsToDraw[i]['yCoordinate'], 1, 1);
-                    }, 2000);
+                    context.fillStyle = pixelsToDraw[i]['colorHex'];
+                    context.fillRect(pixelsToDraw[i]['xCoordinate'], pixelsToDraw[i]['yCoordinate'], 1, 1);
                 }
             }
         }

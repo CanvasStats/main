@@ -51,67 +51,6 @@ export interface UserItem {
     pixelsPlaced?: number;
 }
 
-// export class UserRanks {
-//     public instance_id: number;
-//     public username: string;
-//     public rank_2023: number | null = null;
-//     public pixels_2023: number | null = null;
-//     public rank_2024: number | null = null;
-//     public pixels_2024: number | null = null;
-//     public rank_2025: number | null = null;
-//     public pixels_2025: number | null = null;
-//     public rank_2026: number | null = null;
-//     public pixels_2026: number | null = null;
-
-//     constructor(
-//         instance_id: number,
-//         username: string,
-//         rank_2023: number | null,
-//         pixels_2023: number | null,
-//         rank_2024: number | null,
-//         pixels_2024: number | null,
-//         rank_2025: number | null,
-//         pixels_2025: number | null,
-//         rank_2026: number | null,
-//         pixels_2026: number | null
-//     ) {
-//         this.instance_id = instance_id;
-//         this.username = username;
-//         if (rank_2023) {
-//             this.rank_2023 = rank_2023;
-//             this.pixels_2023 = pixels_2023;
-//         }
-//         if (rank_2024) {
-//             this.rank_2024 = rank_2024;
-//             this.pixels_2024 = pixels_2024;
-//         }
-//         if (rank_2025) {
-//             this.rank_2025 = rank_2025;
-//             this.pixels_2025 = pixels_2025
-//         }
-//         if (rank_2026) {
-//             this.rank_2026 = rank_2026;
-//             this.pixels_2026 = pixels_2026;
-//         }
-//     }
-
-//     public yearParticipated() {
-//         let years = [];
-//         if (this.rank_2023) years.push(2023);
-//         if (this.rank_2024) years.push(2024);
-//         if (this.rank_2025) years.push(2025);
-//         return years;
-//     }
-
-//     public numYearsParticipated() {
-//         let numYears = 0;
-//         if (this.rank_2023) numYears += 1;
-//         if (this.rank_2024) numYears += 1;
-//         if (this.rank_2025) numYears += 1;
-//         return numYears;
-//     }
-// }
-
 export class UserRanks {
     public instance_id: number;
     public username: string;
@@ -320,7 +259,6 @@ export interface JsonObject {
 
 }
 
-
 export class Instance {
     public instanceId: number;
     public instanceName: string;
@@ -369,14 +307,6 @@ export class Instance {
             contentValue: getRandomColor(index + 1, true) 
         }));
     }
-}
-
-export interface instanceItem {
-    instanceId: number;
-    instanceName: string;
-    numUsers?: number;
-    numPixels?: number;
-    yearsActive?: number;
 }
 
 export interface DataRow {

@@ -1,5 +1,5 @@
 import { initializeApp } from "./main";
-import type { ContentPair, Instance, instanceItem } from "./models";
+import type { ContentPair, Instance } from "./models";
 import { navigateTo } from "./modules/navigate";
 import { getRandomColor, makeElement } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
@@ -11,8 +11,7 @@ let yearColor: string = "";
 const years = getYears(true);
 const main = document.querySelector('main') as HTMLElement;
 const heading = makeElement("div", "instance-list-heading", null, null);
-let instanceList: Instance[] | null = await getAllInstances();
-const instanceListCache: Record<string, instanceItem[] | undefined> = {};
+let allInstances: Instance[] | null = await getAllInstances();
 
 const urlParams = new URLSearchParams(window.location.search);
 let instanceString: string | null = urlParams.get('name');
@@ -30,7 +29,25 @@ if (yearString) {
     yearColor = years[0].contentValue
 }
 
-await initializeApp("Instances", "Instances", true);
+await initializeApp("Instances", "Instances", false);
+
+const search = document.getElementById("search") as HTMLElement;
+const searchContainer = makeElement("div", "search-container", "search-bar-container", null);
+const searchIcon = makeElement("span", null, "material-symbols-outlined", "search");
+searchContainer.appendChild(searchIcon);
+const searchInput = makeElement("input", "search-input", "search-bar", null) as HTMLInputElement
+searchInput.setAttribute("type", "text");
+searchInput.setAttribute("placeholder", "Search Instances...");
+if (instanceString) searchInput.value = instanceString;
+searchInput.setAttribute("name", "search-input");
+searchContainer.appendChild(searchInput);
+search.appendChild(searchContainer);
+search.addEventListener("input", (e) => {
+    e.preventDefault();
+    instanceString = searchInput.value.toString();
+    loadInstanceList()
+});
+
 const returnToTopArrow = document.getElementById("return-to-top") as HTMLElement;
 const randomColor = getRandomColor(1, true);
 returnToTopArrow.classList.add(randomColor);
@@ -38,92 +55,6 @@ returnToTopArrow.onclick = function () {
     const header = document.querySelector('header') as HTMLElement;
     header.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-
-function loadYearData(viewYear: string): instanceItem[] {
-    if (instanceListCache[viewYear]) {
-        return instanceListCache[viewYear];
-    }
-    if (instanceList) {
-        const newList: instanceItem[] = instanceList.reduce((acc: instanceItem[], instance: Instance) => {
-            let newInstance: instanceItem = { instanceName: "", instanceId: 0 }
-            if (viewYear === "All") {
-                newInstance = { instanceName: instance.instanceName, numUsers: instance.totalUsers(), instanceId: instance.instanceId }
-            } else {
-                newInstance = {
-                    instanceName: instance.instanceName,
-                    instanceId: instance.instanceId,
-                    numUsers: instance.users[+viewYear],
-                    numPixels: instance.pixels[+viewYear]
-                }
-            }
-            acc.push(newInstance);
-            return acc;
-        }, []);
-        if (viewYear === "All") {
-            newList.sort((a, b) => {
-                const rankA = a.numUsers ?? Infinity;
-                const rankB = b.numUsers ?? Infinity;
-                return rankB - rankA;
-            });
-        } else {
-            newList.sort((a, b) => {
-                const rankA = a.numPixels ?? Infinity;
-                const rankB = b.numPixels ?? Infinity;
-                return rankB - rankA;
-            });
-        }
-        instanceListCache[viewYear] = newList ?? [];
-        return instanceListCache[viewYear];
-    }
-    return [];
-}
-
-function loadInstanceList() {
-    heading.innerHTML = "";
-    const existingInstanceList = document.getElementById("instances");
-    if (existingInstanceList) existingInstanceList.remove();
-    let instanceList = loadYearData(viewYear);
-    if (instanceString) {
-        const instanceName = instanceString.toLowerCase();
-        instanceList = instanceList.filter(instance => instance.instanceName.toLowerCase().includes(instanceName));
-        viewYear = "All";
-    }
-
-    if (viewYear === "All") {
-        const instanceNameHeading = makeElement("p", null, null, "Instance");
-        const yearsActiveHeading = makeElement("p", null, null, "Total Users");
-        heading.append(instanceNameHeading, yearsActiveHeading);
-    } else {
-        const instanceNameHeading = makeElement("p", null, null, "Instance");
-        const pixelsHeading = makeElement("p", null, null, "Pixels Placed | User Count");
-        heading.append(instanceNameHeading, pixelsHeading);
-    }
-
-    if (instanceList.length < 10) {
-        returnToTopArrow.classList.add("hide");
-    } else {
-        returnToTopArrow.classList.remove("hide");
-    }
-
-    const instanceListElem = instanceList.reduce((acc: HTMLElement, instance: instanceItem) => {
-        const instanceRow = makeElement("div", instance.instanceId.toString(), `user-row clickable ${yearColor}`, null);
-        const instanceNameP = makeElement("p", null, null, instance.instanceName);
-        const statP = makeElement("p", null, null, null);
-        if (viewYear === "All" && instance.numUsers) {
-            statP.textContent = instance.numUsers?.toString();
-        } else {
-            statP.textContent = `${instance.numPixels} pixels | ${instance.numUsers} users`
-        }
-        
-        instanceRow.append(instanceNameP, statP);
-        instanceRow.onclick = function () { navigateTo("/instances/instance", { params: { id: instance.instanceId } }) }
-        if (viewYear !== "All" && instance.numPixels) acc.appendChild(instanceRow);
-        if (viewYear === "All") acc.appendChild(instanceRow);
-        return acc;
-    }, makeElement("div", "instances", null, null));
-    main.appendChild(instanceListElem);
-}
-
 
 const filterRow = makeElement("div", "filter-users-row", null, null);
 const filterText = makeElement("p", "filter-users-label", null, "Filter by Year:");
@@ -133,7 +64,6 @@ years.forEach((year: ContentPair) => {
     if (year.contentKey === viewYear) yearButton.classList.add("active-btn");
 
     yearButton.onclick = function () {
-        instanceString = null;
         viewYear = year.contentKey;
         yearColor = year.contentValue;
         filterRow.querySelectorAll(".btn").forEach((btn) => {
@@ -148,6 +78,72 @@ years.forEach((year: ContentPair) => {
 });
 main.appendChild(filterRow);
 main.append(heading);
+
+function loadInstanceList() {
+    const instancesDiv = document.getElementById("instances");
+    if (instancesDiv) instancesDiv.remove();
+    const noResults = document.getElementById("no-results-heading");
+    if (noResults) noResults.remove();
+
+    if (allInstances) {
+        let matchingInstances = allInstances;
+        if (instanceString && instanceString.trim() !== "") {
+            const term = instanceString.trim().toLowerCase();
+            matchingInstances = matchingInstances.filter(instance => instance.instanceName.toLowerCase().includes(term));
+        }
+
+        if (viewYear !== "All") {
+            matchingInstances = matchingInstances.filter(instance => instance.users[+viewYear]);
+            matchingInstances.sort((a, b) => {
+                const rankA = a.users[+viewYear] ?? Infinity;
+                const rankB = b.users[+viewYear] ?? Infinity;
+                return rankA - rankB;
+            });
+        } else {
+            matchingInstances.sort((a, b) => a.instanceName.localeCompare(b.instanceName));
+        }
+        if (matchingInstances.length > 0) {
+            const instances = makeElement("div", "instances", null, null);
+            if (instanceString) {
+                const instanceHeading = makeElement("h2", "instance-heading", "center", `${matchingInstances.length} Instance${matchingInstances.length === 1 ? '' : 's'} containing "${instanceString.trim()}"`);
+                instances.appendChild(instanceHeading);
+            }
+            
+            const colHeadings = makeElement("div", "instance-list-heading", null, null);
+            const instanceNameCol = makeElement("p", null, null, "Instance");
+            const numUsersCol = makeElement("p", null, null, "Total Users");
+            colHeadings.append(instanceNameCol, numUsersCol);
+            const instanceResults = matchingInstances.reduce((acc: HTMLElement, instance: Instance) => {
+                const nextInstance = makeElement("div", instance.instanceId.toString(), `user-row clickable ${yearColor}`, null);
+                const instanceName = makeElement("p", null, null, instance.instanceName);
+                const userCount = viewYear === "All" ? instance.totalUsers().toString() : instance.users[+viewYear].toString();
+                const instanceUserCount = makeElement("p", null, null, userCount);
+                nextInstance.append(instanceName, instanceUserCount);
+                nextInstance.onclick = function () { navigateTo("/instances/instance", { params: { id: instance.instanceId } }) }
+                acc.appendChild(nextInstance);
+                return acc;
+            }, makeElement("div", "instance-results", null, null));
+            instances.append(colHeadings, instanceResults);
+            main.appendChild(instances);
+        } else {
+            const noResults = makeElement("h2", "no-results-heading", "center", null);
+                        if (instanceString && instanceString.trim() !== "") {
+                            noResults.textContent = `No results for "${instanceString.trim()}"`;
+                        } else {
+                            noResults.textContent = "No results for current filters";
+                        }
+            
+                        main.appendChild(noResults);
+        }
+
+        if (matchingInstances.length < 10) {
+            returnToTopArrow.classList.add("hide");
+        } else {
+            returnToTopArrow.classList.remove("hide");
+        }
+    }
+}
+
 loadInstanceList();
 const loading = document.getElementById("loading");
 if (loading) loading.remove();
