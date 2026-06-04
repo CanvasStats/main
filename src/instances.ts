@@ -95,9 +95,9 @@ function loadInstanceList() {
         if (viewYear !== "All") {
             matchingInstances = matchingInstances.filter(instance => instance.users[+viewYear]);
             matchingInstances.sort((a, b) => {
-                const rankA = a.users[+viewYear] ?? Infinity;
-                const rankB = b.users[+viewYear] ?? Infinity;
-                return rankA - rankB;
+                const rankA = a.pixels[+viewYear] ?? Infinity;
+                const rankB = b.pixels[+viewYear] ?? Infinity;
+                return rankB - rankA;
             });
         } else {
             matchingInstances.sort((a, b) => a.instanceName.localeCompare(b.instanceName));
