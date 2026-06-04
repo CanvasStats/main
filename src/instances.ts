@@ -116,7 +116,7 @@ function loadInstanceList() {
             const instanceResults = matchingInstances.reduce((acc: HTMLElement, instance: Instance) => {
                 const nextInstance = makeElement("div", instance.instanceId.toString(), `user-row clickable ${yearColor}`, null);
                 const instanceName = makeElement("p", null, null, instance.instanceName);
-                const userCount = viewYear === "All" ? instance.totalUsers().toString() : instance.users[+viewYear].toString();
+                const userCount = viewYear === "All" ? instance.totalUsers().toString() : `${instance.users[+viewYear]} | ${instance.pixels[+viewYear]}`;
                 const instanceUserCount = makeElement("p", null, null, userCount);
                 nextInstance.append(instanceName, instanceUserCount);
                 nextInstance.onclick = function () { navigateTo("/instances/instance", { params: { id: instance.instanceId } }) }
