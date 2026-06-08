@@ -71,7 +71,7 @@ export function getBlockStructure(block: any, year: number) {
                         attrVal: 'clickable-text',
                         txtNode: item.contentKey,
                         onClick: () => {
-                            navigateTo("/user", { params: { username: item.contentKey, year: year } });
+                            navigateTo("/users/user", { params: { username: item.contentKey, year: year } });
                         }
                     },
                     {
