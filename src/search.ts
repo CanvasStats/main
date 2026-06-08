@@ -127,7 +127,7 @@ function updateResults() {
                     username.textContent = `${user.ranks[+viewYear]}) ${user.username}`;
                     userStat.textContent = user.pixels[+viewYear].toString();
                 }
-                nextUser.onclick = function () { navigateTo("/users/user", { params: { username: user.username } }) };
+                nextUser.onclick = function () { navigateTo("/users/user", { params: { name: user.username } }) };
                 nextUser.append(username, userStat);
                 acc.appendChild(nextUser);
                 return acc;

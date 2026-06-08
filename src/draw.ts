@@ -76,7 +76,7 @@ if (sentFrom) {
     } else if (sentFrom === "user") {
         //Create a button to return to the user's stats
         const returnToUserButton = createButton('blue', 'Back to your stats', "arrow_back");
-        returnToUserButton.addEventListener('click', () => navigateTo('/users/user', { params: { year: viewYear, username: username } }));
+        returnToUserButton.addEventListener('click', () => navigateTo('/users/user', { params: { year: viewYear, name: username } }));
         headerButtons.appendChild(returnToUserButton);
         drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
         filename = `${username.split("@")[0]}-pixels-${viewYear}`
