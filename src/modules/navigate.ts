@@ -1,8 +1,8 @@
 export const ALL_APP_PATHS = [
   '/',
   '/index',
-  '/users',
-  '/user',
+  '/users/',
+  '/users/user',
   '/faq',
   '/draw',
   '/colors',

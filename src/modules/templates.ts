@@ -29,7 +29,7 @@ type LinkWithIcon = {
 
 const headerItems: LinkWithIcon[] = [
     { linkText: "Home", href: "/", external: false, materialIcon: "home" },
-    { linkText: "Users", href: "/users", external: false, materialIcon: "group" },
+    { linkText: "Users", href: "/users/", external: false, materialIcon: "group" },
     { linkText: "Instances", href: "/instances/", external: false, materialIcon: "dns" },
     { linkText: "F.A.Q.", href: "/faq", external: false, materialIcon: "contact_support" },
     { linkText: "Go To Canvas", href: "https://canvas.fediverse.events", external: true, materialIcon: "open_in_new" }
@@ -79,7 +79,7 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
                 const prefix = term.substring(0, colonIndex).trim().toLowerCase();
                 const value = term.substring(colonIndex + 1).trim();
                 if (prefix === "u" || prefix === "user") {
-                    navigateTo("/users", { params: { username: value } });
+                    navigateTo("/users/", { params: { username: value } });
                     return;
                 }
 

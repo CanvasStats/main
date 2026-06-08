@@ -19,7 +19,7 @@ let username: string = "";
 
 const years = getYears(false);
 const urlParams = new URLSearchParams(window.location.search);
-const usernameString: string | null = urlParams.get('username');
+const usernameString: string | null = urlParams.get('name');
 const yearString: string | null = urlParams.get('year');
 if (yearString) viewYear = parseInt(yearString);
 if (years.length > 0) {
@@ -41,7 +41,7 @@ if (usernameString) {
         yearsUserParticipated = await getYearsForUsername(usernameString);
     } catch (error: any) {
         storeMessage(`${usernameString} not found`, "main-message", "error");
-        navigateTo("/users");
+        navigateTo("/users/");
     }
     if (yearString) {
         if (yearsUserParticipated.includes(parseInt(yearString))) {
@@ -88,7 +88,7 @@ if (usernameString) {
     if (loading) loading.remove();
     main.classList.remove("hide");
 } else {
-    navigateTo("/users");
+    navigateTo("/users/");
 }
 
 async function updateStats() {

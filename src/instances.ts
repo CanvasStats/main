@@ -111,7 +111,7 @@ function loadInstanceList() {
             
             const colHeadings = makeElement("div", "instance-list-heading", null, null);
             const instanceNameCol = makeElement("p", null, null, "Instance");
-            const numUsersCol = makeElement("p", null, null, "Total Users");
+            const numUsersCol = makeElement("p", null, null, viewYear === "All" ? "Total Users" : "Total Users | Pixels Placed");
             colHeadings.append(instanceNameCol, numUsersCol);
             const instanceResults = matchingInstances.reduce((acc: HTMLElement, instance: Instance) => {
                 const nextInstance = makeElement("div", instance.instanceId.toString(), `user-row clickable ${yearColor}`, null);

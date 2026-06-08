@@ -9,8 +9,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        users: resolve(__dirname, 'users.html'),
-        user: resolve(__dirname, 'user.html'),
+        users: resolve(__dirname, 'users/index.html'),
+        user: resolve(__dirname, 'users/user.html'),
         faq: resolve(__dirname, 'faq.html'),
         draw: resolve(__dirname, 'draw.html'),
         colors: resolve(__dirname, 'colors.html'),

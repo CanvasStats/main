@@ -141,7 +141,7 @@ async function loadUserList() {
                         userStat.textContent = user.pixels[+viewYear].toString();
                     }
                 }
-                nextUser.onclick = function () { navigateTo("/user", { params: { username: user.username } }) };
+                nextUser.onclick = function () { navigateTo("/users/user", { params: { name: user.username } }) };
                 nextUser.append(username, userStat);
                 acc.appendChild(nextUser);
                 return acc;
