@@ -121,73 +121,79 @@ if (viewYear === 2023) {
 }
 
 function drawCanvas() {
-
-
     mainLoader.classList.remove("hide");
     const existingDownloadBtn = document.getElementById("download-btn");
     if (existingDownloadBtn) existingDownloadBtn.remove();
-
     const existingButtonRow = document.getElementById("redraw-buttons");
     if (existingButtonRow) existingButtonRow.remove();
-    const redrawButtonRow = backgroundColors.reduce((acc: HTMLElement, color: string) => {
-        let button = makeElement("button", null, null, `${color} background`);
-        if (color === "transparent") {
-            button.className = "btn dark-grey";
-        } else {
-            button.className = `btn ${color}`;
-        }
-        if (background === color) {
-            Array.from(acc.children).forEach((child) => {
-                child.classList.remove("active-year");
-            });
-            button.classList.add("active-year");
-        } else {
-            button.onclick = function () {
-                background = color;
-                drawCanvas();
-            }
-        }
 
-        acc.appendChild(button);
-        return acc;
-    }, makeElement("section", "redraw-buttons", "button-row center", null));
-    drawHeader.appendChild(redrawButtonRow);
-
-    if (pixelsToDraw.length > 0) {
-        canvasElement.setAttribute('width', `${canvasWidth}`);
-        canvasElement.setAttribute('height', `${canvasHeight}`);
-        if (context) {
-            //Set the background
-            if (background === "black") {
-                context.fillStyle = "#000000";
-                context.fillRect(0, 0, canvasWidth, canvasHeight);
-            } else if (background !== "transparent") {
-                context.fillStyle = "#ffffff";
-                context.fillRect(0, 0, canvasWidth, canvasHeight);
-            }
-            //Draw the pixels
-            if (!reverse) {
-                pixelsToDraw.forEach(pixel => {
-                    context.fillStyle = pixel['colorHex'];
-                    context.fillRect(pixel['xCoordinate'], pixel['yCoordinate'], 1, 1);
-                });
-            } else {
-                const l = pixelsToDraw.length - 1;
-                for (let i = l; i >= 0; i--) {
-                    context.fillStyle = pixelsToDraw[i]['colorHex'];
-                    context.fillRect(pixelsToDraw[i]['xCoordinate'], pixelsToDraw[i]['yCoordinate'], 1, 1);
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            const redrawButtonRow = backgroundColors.reduce((acc: HTMLElement, color: string) => {
+                let button = makeElement("button", null, null, `${color} background`);
+                if (color === "transparent") {
+                    button.classList.add("btn", "dark-grey", "background-btn");
+                } else {
+                    button.classList.add("btn", `${color}`, "background-btn");
                 }
+                if (background === color) {
+                    Array.from(acc.children).forEach((child) => {
+                        child.classList.remove("active-year");
+                    });
+                    button.classList.add("active-year");
+                } else {
+                    button.onclick = function () {
+                        background = color;
+                        drawCanvas();
+                    }
+                }
+                acc.appendChild(button);
+                return acc;
+            }, makeElement("section", "redraw-buttons", "button-row center", null));
+            
+            drawHeader.appendChild(redrawButtonRow);
+            // Draw the Canvas Pixels
+            if (pixelsToDraw.length > 0) {
+                canvasElement.classList.remove("hide"); // Ensure canvas is visible if it was hidden before
+                canvasElement.setAttribute('width', `${canvasWidth}`);
+                canvasElement.setAttribute('height', `${canvasHeight}`);
+                if (context) {
+                    // Set the background
+                    if (background === "black") {
+                        context.fillStyle = "#000000";
+                        context.fillRect(0, 0, canvasWidth, canvasHeight);
+                    } else if (background !== "transparent") {
+                        context.fillStyle = "#ffffff";
+                        context.fillRect(0, 0, canvasWidth, canvasHeight);
+                    }
+                    // Draw the pixels
+                    if (!reverse) {
+                        pixelsToDraw.forEach(pixel => {
+                            context.fillStyle = pixel['colorHex'];
+                            context.fillRect(pixel['xCoordinate'], pixel['yCoordinate'], 1, 1);
+                        });
+                    } else {
+                        const l = pixelsToDraw.length - 1;
+                        for (let i = l; i >= 0; i--) {
+                            context.fillStyle = pixelsToDraw[i]['colorHex'];
+                            context.fillRect(pixelsToDraw[i]['xCoordinate'], pixelsToDraw[i]['yCoordinate'], 1, 1);
+                        }
+                    }
+                }
+
+                const downloadButton = createButton("green", "Download your image", "download");
+                downloadButton.setAttribute("id", "download-btn");
+                downloadButton.addEventListener('click', () => downloadImage());
+                headerButtons.appendChild(downloadButton);
+            } else {
+                drawTitle.textContent = "You have filtered out all the pixels!";
+                canvasElement.classList.add("hide");
             }
-        }
-        const downloadButton = createButton("green", "Download your image", "download");
-        downloadButton.setAttribute("id", "download-btn");
-        downloadButton.addEventListener('click', () => downloadImage());
-        headerButtons.appendChild(downloadButton);
-    } else {
-        drawTitle.textContent = "You have filtered out all the pixels!";
-        canvasElement.classList.add("hide");
-    }
-    mainLoader.classList.add("hide");
+
+            mainLoader.classList.add("hide");
+            
+        }, 0);
+    });
 }
 
 function downloadImage() {
