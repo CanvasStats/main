@@ -1,8 +1,9 @@
 import { initializeApp } from "./main";
-import { DrawParams, type Pixel } from "./models";
+import { DrawParams, type Pixel, type UserItem } from "./models";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, createButton, createMessage, convertColor, makeElement } from "./modules/utils";
 import { getPixelsForDraw, getYears } from "./services/canvas.service";
+import { getAllUsersForInstance, getInstanceForId, getPixelsForInstance } from "./services/instances.service";
 
 const main = document.querySelector('main') as HTMLElement;
 const drawHeader = document.getElementById("draw-header") as HTMLElement;
@@ -18,6 +19,8 @@ const sentFrom: string | null = urlParams.get("sentFrom");
 const backgroundString: string | null = urlParams.get("background");
 const colorString: string | null = urlParams.get("color");
 const reverseString: string | null = urlParams.get("reverse");
+let instanceIdString: string | null = urlParams.get('id'); 
+const instanceId: number = instanceIdString ? parseInt(instanceIdString) : 0;
 const undoString = urlParams.get('undo');
 const isTopString = urlParams.get('isTop');
 const specialString = urlParams.get('special');
@@ -53,8 +56,13 @@ if (isTopString === "true") {
 } else if (isTopString === "false") {
     topOnly = false;
 }
-
-await initializeApp("Users", "Draw", true);
+let parentPage = "Draw";
+if (instanceIdString) {
+    parentPage = "Instances";
+} else if (usernameString) {
+    parentPage = "Users";
+}
+await initializeApp(parentPage, "Draw", true);
 if (usernameString) {
     username = usernameString;
     document.title = `${usernameString}'s Pixels - Canvas Stats`;
@@ -80,6 +88,13 @@ if (sentFrom) {
         headerButtons.appendChild(returnToUserButton);
         drawTitle.textContent = `The image below contains all the pixels placed by ${username} during Canvas ${viewYear}`;
         filename = `${username.split("@")[0]}-pixels-${viewYear}`
+    } else if (sentFrom === "instance") {
+        const instanceName = await getInstanceForId(instanceId);
+        const returnToInstanceButton = createButton('blue', `Back to ${instanceName?.instanceName} stats`, "arrow_back");
+        returnToInstanceButton.addEventListener("click", () => navigateTo("/instances/instance", { params: {id: instanceId, year: viewYear}}));
+        headerButtons.appendChild(returnToInstanceButton);
+        drawTitle.textContent = `The image below contains all the pixels placed by users of ${instanceName?.instanceName} during Canvas ${viewYear}`;
+        filename = `${instanceName?.instanceName}-pixels${viewYear}`;
     }
     //  else if (sentFrom === "search") {
     //     //Create a button to return to the search page
@@ -106,7 +121,19 @@ main.classList.remove("hide");
 mainLoader.classList.remove("hide");
 
 const pixelData = await getPixelsForDraw(new DrawParams(viewYear, usernameString, undo, color, specialString, topOnly));
-if (pixelData) pixelsToDraw = pixelData;
+if (instanceIdString) {
+    let users: UserItem[] = [];
+            if (instanceIdString) users = await getAllUsersForInstance(parseInt(instanceIdString), +viewYear);
+            const usernames: string[] = users.reduce((acc: string[], user: UserItem) => {
+                acc.push(user.username.toLowerCase());
+                return acc;
+            }, []);
+            const instancePixels = await getPixelsForInstance(usernames, +viewYear);
+            if (instancePixels) pixelsToDraw = instancePixels;
+} else {
+    if (pixelData) pixelsToDraw = pixelData;
+}
+
 
 //Set the Canvas dimensions for the year
 if (viewYear === 2023) {
@@ -154,7 +181,7 @@ function drawCanvas() {
             drawHeader.appendChild(redrawButtonRow);
             // Draw the Canvas Pixels
             if (pixelsToDraw.length > 0) {
-                canvasElement.classList.remove("hide"); // Ensure canvas is visible if it was hidden before
+                canvasElement.classList.remove("hide");
                 canvasElement.setAttribute('width', `${canvasWidth}`);
                 canvasElement.setAttribute('height', `${canvasHeight}`);
                 if (context) {

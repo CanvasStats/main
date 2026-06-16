@@ -1,5 +1,6 @@
 import { initializeApp } from "./main";
 import type { ContentPair, DataRow, Instance, UserItem } from "./models";
+import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createButton, createMessage, makeElement, storeMessage } from "./modules/utils";
@@ -26,7 +27,13 @@ if (instanceIdString) {
     } else {
         instanceId = +instanceIdString;
         const name = await getInstanceNameForId(instanceId);
-        instanceName = name ? name : "";
+        if (!name) {
+            storeMessage("Error: invalid instance ID. Please try again", "main-message", "error");
+            stop = true;
+            navigateTo("/instances/");
+        } else {
+            instanceName = name ? name : "";
+        }
     }
 } else {
     storeMessage("Error: invalid instance ID. Please try again", "main-message", "error");
@@ -41,11 +48,12 @@ const instanceInfo: Instance | null = await getInstanceForId(instanceId);
 const yearString: string | null = urlParams.get('year');
 years = instanceInfo ? instanceInfo.yearsActive() : [];
 if (yearString) {
-    const searchYear = years.find(year => year.contentKey === viewYear);
+    const searchYear = years.find(year => year.contentKey === yearString);
     if (searchYear) {
-        yearColor = searchYear.contentValue
+        yearColor = searchYear.contentValue;
+        viewYear = searchYear.contentKey;
     } else {
-        createMessage(`No users from ${instanceName} participated in ${viewYear}`, "main-message", "warning");
+        createMessage(`No users from ${instanceName} participated in ${yearString}`, "main-message", "warning");
         viewYear = years[years.length - 1].contentKey;
         yearColor = years[years.length - 1].contentValue;
     }
@@ -160,15 +168,37 @@ async function updateStats() {
         graphStat.appendChild(statSection);
         statsContainer.appendChild(graphStat);
         if (pixelsPerHour) createLineGraph(pixelsPerHour, graphContainer);
-
-        const drawArticle = makeElement("article", null, "right", null);
-        const drawIcon = makeElement("span", null, "material-symbols-outlined icon", "dashboard_customize");
-        const drawInfo = makeElement("section", null, null, null);
-        const drawHeading = makeElement("h3", null, "center", `View all pixels placed by ${instanceName}`);
-        const comingSoon = makeElement("p", null, "text", "Coming soon");
-        drawInfo.append(drawHeading, comingSoon);
-        drawArticle.append(drawIcon, drawInfo);
-        statsContainer.appendChild(drawArticle);
+        const drawBlock = {
+            type: "button-group",
+            layout: "right",
+            title: `View all pixels placed by ${instanceName}`,
+            icon: "dashboard_customize",
+            buttons: [
+                {
+                    linkText: "on white background",
+                    classes: "white",
+                    page: "/draw",
+                    queryParams: { "sentFrom": "instance", "year": viewYear, "background": "white", "id": instanceId },
+                    external: false
+                },
+                {
+                    linkText: "on black background",
+                    classes: "black",
+                    page: "/draw",
+                    queryParams: { "sentFrom": "instance", "year": viewYear, "background": "black", "id": instanceId },
+                    external: false
+                },
+                {
+                    linkText: "on transparent background",
+                    classes: "dark-grey",
+                    page: "/draw",
+                    queryParams: { "sentFrom": "instance", "year": viewYear, "background": "transparent", "id": instanceId },
+                    external: false
+                }
+            ]
+        }
+        const structure = getBlockStructure(drawBlock, parseInt(viewYear));
+        renderTree(structure, statsContainer);
         loadingText.textContent = "All done!";
     } catch (error: any) {
         createMessage(error, "main-message", "error");
