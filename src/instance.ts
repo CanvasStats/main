@@ -155,7 +155,7 @@ async function updateStats() {
         colorStat.append(treemapContainer, treemapHeader);
         statsContainer.appendChild(colorStat);
         const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
-        if (colorCounts) createColorTreemap(treemapContainer, colorCounts, dynamicRatio, false, +viewYear);
+        if (colorCounts) createColorTreemap(treemapContainer, colorCounts, dynamicRatio, false, +viewYear, 0);
 
         loadingText.textContent = "Calculating pixels placed per hour";
         const graphStat = makeElement("article", null, "left", null);

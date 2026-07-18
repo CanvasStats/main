@@ -149,7 +149,7 @@ export async function getPixelsPerHourForInstance(instancePixels: Pixel[]) {
 
             result.push({
                 timestamp: new Date(currentHour.toISOString()),
-                pixelCount: pixelsInHour.length,
+                value: pixelsInHour.length,
             });
             currentHour = nextHour;
         }

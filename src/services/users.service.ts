@@ -322,7 +322,7 @@ export async function getPixelsPerHourForUser(year: number, username: string) {
 
             result.push({
                 timestamp: new Date(currentHour.toISOString()),
-                pixelCount: pixelsInHour.length,
+                value: pixelsInHour.length,
             });
             currentHour = nextHour;
         }

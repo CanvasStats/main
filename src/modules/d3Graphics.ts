@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import type { ColorCount } from '../models';
+import type { ColorCount, DataRow } from '../models';
 import { navigateTo } from './navigate';
 
 type PieArc = d3.PieArcDatum<ColorCount>;
@@ -96,67 +96,91 @@ export function createColorCountPieChart(year: number, colorCounts: ColorCount[]
         });
 }
 
-interface DataRow {
-    timestamp: Date;
-    pixelCount: number;
-}
+const parseCSVTime = (timeStr: string): Date => {
+    const formatA = d3.timeParse("%Y-%m-%d %H:%M:%S")(timeStr);
+    if (formatA) return formatA;
+    
+    const formatB = d3.timeParse("%B %d %Y %H:%M:%S")(timeStr);
+    if (formatB) return formatB;
 
-export function createLineGraph(csvUrl: string | DataRow[], chartContainerID: HTMLElement) {
+    const nativeFallback = new Date(timeStr);
+    if (!isNaN(nativeFallback.getTime())) return nativeFallback;
+
+    throw new Error(`Unable to parse date string: ${timeStr}`);
+};
+
+export async function createLineGraph(
+    inputData: string | DataRow[], 
+    chartContainerID: HTMLElement
+) {
     const margin = { top: 20, right: 30, bottom: 50, left: 50 };
     const width = 800 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
-    const parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
 
-    async function createChart() {
-        let rawData!: string | DataRow[];
-        if (typeof csvUrl === "string") {
-            rawData = await d3.csv(csvUrl, (d) => {
-                return {
-                    timestamp: parseTime(d.timestamp!),
-                    pixelCount: +d.pixelCount!
-                } as DataRow;
-            });
-        } else {
-            rawData = csvUrl;
-        }
+    let parsedData: DataRow[] = [];
 
-        const svg = d3.select(chartContainerID)
-            .append("svg")
-            .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-            .attr("preserveAspectRatio", "xMinYMin meet")
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
+    if (typeof inputData === "string") {
+        const csvText = await d3.text(inputData);
+        const rawRows = d3.csvParse(csvText);
 
-        const x = d3.scaleTime()
-            .domain(d3.extent(rawData, d => d.timestamp) as [Date, Date])
-            .range([0, width]);
+        if (rawRows.length === 0) return;
 
-        const y = d3.scaleLinear()
-            .domain([0, d3.max(rawData, d => d.pixelCount) || 0])
-            .nice()
-            .range([height, 0]);
+        const firstRowKeys = Object.keys(rawRows[0]);
+        // Find whatever key holds the data numeric values
+        const valueKey = firstRowKeys.find(k => k === "pixelCount" || k === "user_count") || firstRowKeys[1];
 
-        const line = d3.line<DataRow>()
-            .x(d => x(d.timestamp))
-            .y(d => y(d.pixelCount))
-            .curve(d3.curveMonotoneX);
-
-        svg.append("g")
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x).ticks(5));
-
-        svg.append("g")
-            .call(d3.axisLeft(y));
-
-        svg.append("path")
-            .datum(rawData)
-            .attr("fill", "none")
-            .attr("stroke", "steelblue")
-            .attr("stroke-width", 2)
-            .attr("d", line);
+        parsedData = rawRows.map(d => {
+            return {
+                timestamp: parseCSVTime(d.timestamp!),
+                value: +d[valueKey]!
+            };
+        });
+    } else {
+        // Map incoming arrays dynamically. If the array elements still have 'pixelCount', 
+        // we safely map it to 'value' so TypeScript doesn't throw an error.
+        parsedData = inputData.map(d => ({
+            timestamp: d.timestamp,
+            value: d.value !== undefined ? d.value : +(d as any).pixelCount
+        }));
     }
 
-    createChart();
+    // Clean up previous SVG renderings
+    d3.select(chartContainerID).selectAll("svg").remove();
+
+    const svg = d3.select(chartContainerID)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleTime()
+        .domain(d3.extent(parsedData, d => d.timestamp) as [Date, Date])
+        .range([0, width]);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(parsedData, d => d.value) || 0])
+        .nice()
+        .range([height, 0]);
+
+    const line = d3.line<DataRow>()
+        .x(d => x(d.timestamp))
+        .y(d => y(d.value))
+        .curve(d3.curveMonotoneX);
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x).ticks(5));
+
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    svg.append("path")
+        .datum(parsedData)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 2)
+        .attr("d", line);
 }
 
 interface TreemapRoot {
@@ -169,7 +193,8 @@ export function createColorTreemap(
     data: ColorCount[],
     aspectRatio: number,
     isLink: boolean,
-    year: number
+    year: number,
+    total_pixels: number
 ): () => void {
     const container = d3.select(selector);
     container.selectAll('*').remove();
@@ -258,7 +283,7 @@ export function createColorTreemap(
                 })
                 .on('mousemove', function (event, d) {
                     tooltip
-                        .html(`<strong>${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels`)
+                        .html(total_pixels == 0 ? `${d.data.label}</strong><br/>Count: ${d.data.count.toLocaleString()} pixels` : `<strong>${d.data.label}</strong><br/>Count: ${((d.data.count / total_pixels) * 100).toFixed(2)} %`)
                         .style('top', (event.pageY - 40) + 'px')
                         .style('left', (event.pageX + 15) + 'px');
                 })
@@ -270,7 +295,7 @@ export function createColorTreemap(
         cell.append('text')
             .attr('x', 5)
             .attr('y', 15)
-            .text((d: any) => `${d.data.label} (${d.data.count.toLocaleString()})`)
+            .text((d: any) => total_pixels == 0 ? `${d.data.label}: ${d.data.count.toLocaleString()} pixels` : `${d.data.label}: ${((d.data.count / total_pixels) * 100).toFixed(2)} %`)
             .style('font-size', '11px')
             .style('font-family', 'sans-serif')
             .style('font-weight', 'bold')

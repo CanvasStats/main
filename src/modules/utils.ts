@@ -1,4 +1,6 @@
-import type { Link } from "../models";
+import type { ColorCount, Link, LiveColorCount, LiveStats } from "../models";
+import { getLiveColorCounts, getUsersOnline } from "../services/live.service";
+import { createColorTreemap, createLineGraph } from "./d3Graphics";
 import { navigateTo } from "./navigate";
 
 export function createIconDiv(iconType: string, iconName: string) {
@@ -189,7 +191,20 @@ export function addLoadingElement(): HTMLElement {
   return loadingDiv;
 }
 
-export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: number | null, startDate: string, endDate: string) {
+function mapLiveColorCountJsonToInterface(data: LiveColorCount[]) {
+  return data.reduce((acc: ColorCount[], currentCount: LiveColorCount) => {
+    const newCount: ColorCount = {
+      class: currentCount["color_name"],
+      label: currentCount["color_name"],
+      hex: `#${currentCount["color_hex"]}`,
+      count: currentCount["count"]
+    }
+    acc.push(newCount);
+    return acc;
+  }, []);
+}
+
+export async function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: number | null, startDate: string, endDate: string, liveStats: boolean) {
   const countdown = makeElement("article", null, "left", null);
   const countdownIcon = makeElement("span", null, "material-symbols-outlined icon", "hourglass_top");
   countdown.appendChild(countdownIcon);
@@ -279,6 +294,73 @@ export function comingSoonBlock(statsContainer: HTMLElement, countdownInterval: 
     templateInfo.append(templateP, templateButtonRow);
     templateArticle.append(templateIcon, templateInfo);
     statsContainer.appendChild(templateArticle);
+    
+    if (liveStats && initialRemainingToStart.isFinished) {
+      const liveUpdate: LiveStats = await getLiveColorCounts();
+      if (liveUpdate) {
+        const infoBlock = makeElement("article", null, "left", null);
+        const infoIcon = makeElement("span", null, "material-symbols-outlined icon", "arrows_output");
+        const infoP = makeElement("p", null, "text", `As of ${liveUpdate["timestamp"]} the canvas is ${liveUpdate["width"]} pixels by ${liveUpdate["height"]} pixels`);
+        const infoBlockInfo = makeElement("section", null, null, null);
+        infoBlockInfo.append(infoP);
+        infoBlock.append(infoIcon, infoBlockInfo);
+        statsContainer.appendChild(infoBlock);
+
+        const disclaimerBlock = makeElement("article", null, "right", null);
+        const disclaimerIcon = makeElement("span", null, "material-symbols-outlined icon", "warning");
+        const disclaimersSection = makeElement("section", null, null, null);
+        const disclaimersUl = makeElement("ul", null, null, null);
+        const disclaimers = [
+          "The following stats are estimates. This website does not have live access to the Canvas Database",
+          "All data is generated from screenshots of the canvas",
+          "The following counts are only the visible pixels, not the total number of pixels placed",
+          "The white count is both white pixels and virgin pixels since there is no difference in the screenshot"
+        ]
+        disclaimers.forEach((disclaimer: string) => {
+          const li = makeElement("li", null, null, disclaimer);
+          disclaimersUl.appendChild(li);
+        });
+        disclaimersSection.appendChild(disclaimersUl);
+        disclaimerBlock.append(disclaimerIcon, disclaimersSection);
+        statsContainer.appendChild(disclaimerBlock);
+
+        const liveColorCountsData = mapLiveColorCountJsonToInterface(liveUpdate["counts"]);
+        const treemap = makeElement("article", null, "right treemap", null);
+        const treemapContainer = makeElement("div", null, 'colorCountsPieChart', null)
+        treemapContainer.setAttribute('style', 'display: block; width: 100%; min-width: 300px; min-height: 300px;');
+        treemap.appendChild(treemapContainer);
+
+        const treemapTitle = makeElement("section", null, 'color-section', null);
+
+        if (liveColorCountsData.length === 0) {
+          const soonP = makeElement("h3", null, "text", "This page will start updating with stat in about 10 minutes.");
+          treemapTitle.appendChild(soonP);
+          statsContainer.appendChild(treemapTitle)
+        } else {
+          const statHeader = makeElement("h3", null, null, "Pixels by Color");
+          const statP = makeElement("p", null, "text", "(Percent of canvas covered)");
+          treemapTitle.append(statHeader, statP);
+          statsContainer.append(treemapTitle, treemap);
+          const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
+          createColorTreemap(treemapContainer, liveColorCountsData, dynamicRatio, false, 0, liveUpdate["total_pixels"]);
+        }
+
+      }
+      const usersOnline = await getUsersOnline();
+      const uoLength = usersOnline?.length ? usersOnline?.length : 0
+      if (uoLength > 0) {
+        const graphStat = makeElement("article", null, "left", null);
+        const statSection = makeElement("section", null, null, null);
+        const statHeader = makeElement("h3", null, "center", "Users online during the event");
+        statSection.appendChild(statHeader);
+        const graphContainer = makeElement("div", "line-graph-container", null, null);
+        graphContainer.setAttribute("style", "width: 100%; max-width: 800px; margin: auto;")
+        statSection.appendChild(graphContainer);
+        graphStat.appendChild(statSection);
+        statsContainer.appendChild(graphStat);
+        if (usersOnline) createLineGraph(usersOnline, graphContainer);
+      }
+    }
   }
 
 

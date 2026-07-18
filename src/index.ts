@@ -70,7 +70,7 @@ async function updateStats() {
     }
 
     if (viewYear === 2026) {
-        comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z");
+        await comingSoonBlock(statsContainer, countdownInterval, "2026-07-18T04:00:00.000Z", "2026-07-20T04:00:00.000Z", true);
         const socialBlock = createSocialBlock("right", "Stay Connected", "public", viewYear);
         statsContainer.appendChild(socialBlock);
     } else {
@@ -97,7 +97,7 @@ async function updateStats() {
                 treemap.appendChild(treemapTitle);
                 statsContainer.appendChild(treemap);
                 const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
-                createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear);
+                createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear, 0);
 
             } else if (block.type === "graph") {
                 loadingText.textContent = "Creating line graph";

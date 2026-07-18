@@ -119,7 +119,7 @@ async function updateStats() {
                 }
                 statsContainer.appendChild(colorStat);
                 const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
-                if (userColorCounts) createColorTreemap(treemapContainer, userColorCounts, dynamicRatio, false, viewYear);
+                if (userColorCounts) createColorTreemap(treemapContainer, userColorCounts, dynamicRatio, false, viewYear, 0);
 
             } else if (block.type === "graph") {
                 loadingText.textContent = "Creating line graph";

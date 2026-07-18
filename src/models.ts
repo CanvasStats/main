@@ -13,6 +13,11 @@ export class ContentPair {
     }
 }
 
+export interface stringNumberPair {
+    key: string,
+    value: number
+}
+
 export class Pixel {
     public username: string;
     public xCoordinate: number;
@@ -311,5 +316,19 @@ export class Instance {
 
 export interface DataRow {
     timestamp: Date;
-    pixelCount: number;
+    value: number;
 }
+
+export interface LiveStats {
+        timestamp: string,
+        width: number,
+        height: number,
+        total_pixels: number,
+        counts: LiveColorCount[]
+    }
+
+    export interface LiveColorCount {
+            color_name: string,
+            color_hex: string,
+            count: number
+        }
