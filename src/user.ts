@@ -12,7 +12,7 @@ const main = document.querySelector('main') as HTMLElement;
 const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
 const mainLoader = addLoadingElement();
 
-let viewYear: number = 2025;
+let viewYear: number = 2026;
 let yearColor: string = "";
 let username: string = "";
 let claimedUserValue: string = "";

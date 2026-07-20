@@ -9,10 +9,10 @@ const yearUserCounts: ContentPair[] = [
     new ContentPair("2023", "2204")
 ];
 const yearPixelCounts: ContentPair[] = [
-    new ContentPair("2026", "~ 309k"),
-    new ContentPair("2025", "308439"),
-    new ContentPair("2024", "642643"),
-    new ContentPair("2023", "628416")
+    new ContentPair("2026", "309205"),
+    new ContentPair("2025", "313408"),
+    new ContentPair("2024", "658367"),
+    new ContentPair("2023", "630578")
 ];
 const baseURL: string = "https://raw.githubusercontent.com/TheRealMonte/data-files/main";
 

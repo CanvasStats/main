@@ -79,20 +79,12 @@ async function updateStats() {
                 const clickP = makeElement("p", null, "text", "Click on a color to view the pixels on the canvas");
 
                 const statHeader = makeElement("h3", null, null, block.title);
-                if (viewYear === 2026) {
-                    treemapTitle.append(statHeader);
-                } else {
-                    treemapTitle.append(statHeader, clickP);
-                }
+                treemapTitle.append(statHeader, clickP);
             }
             treemap.appendChild(treemapTitle);
             statsContainer.appendChild(treemap);
             const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
-            if (viewYear === 2026) {
-                createColorTreemap(treemapContainer, colorCounts, dynamicRatio, false, viewYear, 250000);
-            } else {
-                createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear, 0);
-            }
+            createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear, 0);
         } else if (block.type === "graph") {
             loadingText.textContent = "Creating line graph";
             pixelPerMinuteURL = block.url;

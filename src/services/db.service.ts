@@ -1,7 +1,7 @@
 import type { Achievement } from "../models";
 
 const DB_NAME = 'pwa_stats_db';
-const DB_VERSION = 2;
+const DB_VERSION = 4;
 const SETTINGS_STORE = 'settings';
 const ACHIEVEMENTS_STORE = 'achievements';
 const CLAIMED_KEY = 'claimed_user';
