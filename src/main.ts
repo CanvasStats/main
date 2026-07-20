@@ -1,6 +1,14 @@
 import { loadFooter, loadHeader } from "./modules/templates";
 import { createMessage } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
+import { registerSW } from 'virtual:pwa-register';
+
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    window.location.reload();
+  }
+});
 
 let year: number = 2026;
 // Get the year from the url
