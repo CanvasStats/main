@@ -306,10 +306,10 @@ export class Instance {
      */
     public yearsActive(): ContentPair[] {
         const years = Object.keys(this.users).map(Number).sort((a, b) => a - b);
-        
+
         return years.map((year, index) => ({
             contentKey: year.toString(),
-            contentValue: getRandomColor(index + 1, true) 
+            contentValue: getRandomColor(index + 1, true)
         }));
     }
 }
@@ -320,15 +320,22 @@ export interface DataRow {
 }
 
 export interface LiveStats {
-        timestamp: string,
-        width: number,
-        height: number,
-        total_pixels: number,
-        counts: LiveColorCount[]
-    }
+    timestamp: string,
+    width: number,
+    height: number,
+    total_pixels: number,
+    counts: LiveColorCount[]
+}
 
-    export interface LiveColorCount {
-            color_name: string,
-            color_hex: string,
-            count: number
-        }
+export interface LiveColorCount {
+    color_name: string,
+    color_hex: string,
+    count: number
+}
+
+export interface Achievement {
+    name: string,
+    description: string,
+    icon: string,
+    years: number[]
+}

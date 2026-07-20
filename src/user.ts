@@ -1,13 +1,12 @@
 import { initializeApp } from "./main";
-import type { ColorCount, ContentPair, DataRow, JsonObject } from "./models";
+import type { Achievement, ColorCount, ContentPair, DataRow, JsonObject } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createMessage, makeElement, storeMessage } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
-import { GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
-
-
+import { getClaimedUser, setClaimedUser, checkForExistingAchievements, getAllAchievementsFromDB, addAchievementsToDB } from "./services/db.service";
+import { checkAchievementsForUser, GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
 
 const main = document.querySelector('main') as HTMLElement;
 const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
@@ -16,8 +15,10 @@ const mainLoader = addLoadingElement();
 let viewYear: number = 2025;
 let yearColor: string = "";
 let username: string = "";
+let claimedUserValue: string = "";
 
 const years = getYears(false);
+let yearsUserParticipated: number[] = [];
 const urlParams = new URLSearchParams(window.location.search);
 const usernameString: string | null = urlParams.get('name');
 const yearString: string | null = urlParams.get('year');
@@ -33,16 +34,55 @@ if (years.length > 0) {
     yearColor = "white";
 }
 
+const achievementSection: HTMLElement = makeElement("fieldset", "achievements", null, null);
+const loadingAch = makeElement("h2", null, null, "Loading Achievements . . . ");
+achievementSection.appendChild(loadingAch);
+
 await initializeApp("Users", usernameString!, true);
 if (usernameString) {
     username = usernameString;
-    let yearsUserParticipated: number[] = []
+    const claimedResponse = await getClaimedUser();
+    if (claimedResponse) claimedUserValue = claimedResponse;
+
     try {
         yearsUserParticipated = await getYearsForUsername(usernameString);
     } catch (error: any) {
         storeMessage(`${usernameString} not found`, "main-message", "error");
         navigateTo("/users/");
     }
+
+    const userHeader = makeElement("section", "user-header", null, null);
+    const usernameH2 = makeElement("h2", null, null, usernameString);
+    userHeader.appendChild(usernameH2);
+    const claimProfileButton = document.createElement("button") as HTMLButtonElement;
+    claimProfileButton.type = "button";
+    claimProfileButton.classList.add("green", "btn");
+    const profileIcon = makeElement("span", null, "material-symbols-outlined", "account_circle");
+    const buttonText = makeElement("span", null, null, null);
+    if (claimedUserValue && claimedUserValue !== usernameString) {
+        buttonText.textContent = "Claim this profile instead";
+    } else if (!claimedUserValue) {
+        buttonText.textContent = "Claim this profile";
+    }
+    if (buttonText.textContent) {
+        claimProfileButton.append(profileIcon, buttonText);
+        claimProfileButton.addEventListener("click", async () => {
+            try {
+                await setClaimedUser(usernameString);
+                window.location.reload();
+            } catch (error: any) {
+                createMessage(error, "main-message", "error");
+            }
+        });
+        userHeader.appendChild(claimProfileButton);
+    }
+
+    main.appendChild(userHeader);
+    if (claimedUserValue && claimedUserValue === usernameString) {
+        createMessage(`Welcome ${usernameString}!`, "main-message", "waving_hand", 5);
+        main.appendChild(achievementSection);
+    }
+
     if (yearString) {
         if (yearsUserParticipated.includes(parseInt(yearString))) {
             viewYear = parseInt(yearString);
@@ -91,6 +131,41 @@ if (usernameString) {
     navigateTo("/users/");
 }
 
+async function loadAchievements() {
+    const hasExistingAchievements = await checkForExistingAchievements();
+    let fullAchievementArray: Achievement[] = [];
+    if (hasExistingAchievements === "good") {
+        fullAchievementArray = await getAllAchievementsFromDB();
+    } else if (hasExistingAchievements === "update") {
+        const tempAchArray = await getAllAchievementsFromDB();
+        fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, tempAchArray);
+        await addAchievementsToDB(fullAchievementArray);
+        createMessage(`You unlocked ${fullAchievementArray.length} Achievement!`, "main-message", "info", 5);
+    } else {
+        fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, []);
+        await addAchievementsToDB(fullAchievementArray);
+        createMessage(`You unlocked ${fullAchievementArray.length} Achievement!`, "main-message", "info", 5);
+    }
+    achievementSection.innerHTML = "";
+    const legend = makeElement("legend", null, null, "Achievements");
+    achievementSection.appendChild(legend);
+    const achievementsFlexbox = fullAchievementArray.reduce((acc: HTMLElement, achievement: Achievement) => {
+        const achievementDiv = makeElement("div", null, "dark-purple ach", null);
+        const iconSpan = makeElement("span", null, "material-symbols-outlined", achievement.icon);
+        achievementDiv.appendChild(iconSpan);
+        const tooltipCard = makeElement("div", null, "tooltip-card", null);
+        const titleEl = makeElement("strong", null, "tooltip-title", achievement.name);
+        tooltipCard.appendChild(titleEl);
+        const descText = `${achievement.description} (${achievement.years.join(', ')})`;
+        const descEl = makeElement("p", null, "tooltip-desc", descText);
+        tooltipCard.appendChild(descEl);
+        achievementDiv.appendChild(tooltipCard);
+        acc.appendChild(achievementDiv);
+        return acc;
+    }, makeElement("section", "achievements-flexbox", null, null));
+    achievementSection.append(achievementsFlexbox);
+}
+
 async function updateStats() {
     const loadingText = document.getElementById("main-loader-text") as HTMLElement;
     statsContainer.innerHTML = "";
@@ -119,7 +194,7 @@ async function updateStats() {
                 }
                 statsContainer.appendChild(colorStat);
                 const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
-                if (userColorCounts) createColorTreemap(treemapContainer, userColorCounts, dynamicRatio, false, viewYear, 0);
+                if (userColorCounts && userColorCounts.length > 0) createColorTreemap(treemapContainer, userColorCounts, dynamicRatio, false, viewYear, 0);
 
             } else if (block.type === "graph") {
                 loadingText.textContent = "Creating line graph";
@@ -148,3 +223,6 @@ async function updateStats() {
 
 main.append(mainLoader, statsContainer);
 await updateStats();
+if (claimedUserValue && claimedUserValue === usernameString) {
+    await loadAchievements();
+}

@@ -1,6 +1,6 @@
-import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks, type DataRow } from "../models";
+import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks, type DataRow, type Achievement, Pixel } from "../models";
 import { createMessage, fetchHTML, convertColor } from "../modules/utils";
-import { getYearCounts, getPixelsForDraw, countUsersFinalPixels } from "./canvas.service";
+import { getYearCounts, getPixelsForDraw, countUsersFinalPixels, getPixelDataForYear } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
@@ -94,101 +94,114 @@ async function getAllUserStatsForYear(year: number) {
     }
 }
 
-export async function getUserStats(username: string, year: number) {
+async function getUserObject(username: string, year: number) {
     const allUsersData: User[] | undefined = await getAllUserStatsForYear(year);
-    const yearCounts = getYearCounts(year);
     if (allUsersData) {
-        const user: User | undefined = allUsersData.find(user => user['username'].toLowerCase() === username.toLowerCase());
-        const topCount = await countUsersFinalPixels(username, year)
-        if (user) {
-            let userJson: JsonObject = {
-                username: username,
-                year: year,
-                blocks: [
-                    {
-                        type: "standard",
-                        layout: "left",
-                        icon: "leaderboard",
-                        content: [
-                            `You ranked ${user['userRank']} out of ${yearCounts[0]['contentValue']} users in ${year}`
-                        ]
-                    },
-                    {
-                        type: "standard",
-                        layout: "right",
-                        icon: "grid_view",
-                        content: [
-                            `You placed ${user['pixelCount']} pixels throughout the event`
-                        ]
-                    },
-                     {
-                        type: "standard",
-                        layout: "left",
-                        icon: "arrow_shape_up_stack_2",
-                        content: [
-                            `${topCount} of your pixels (${((topCount / user['pixelCount']) * 100).toFixed(2)}%) made it to the final image at the end of the event`
-                        ]
-                    },
-                    {
-                        type: "user-color-grid",
-                        layout: "right",
-                        title: "Pixels by color",
-                        data: []
-                    },
-                    {
-                        type: "standard",
-                        layout: "left",
-                        icon: "colors",
-                        content: [
-                            `You used ${await getNumColorsUsedForUsername(year, username)} out of the ${year === 2023 ? "32" : "34"} colors`
-                        ]
-                    },
-                    {
-                        type: "standard",
-                        layout: "right",
-                        icon: "kid_star",
-                        content: [
-                            `The coordinate you placed the most pixels on was (${user['xCord']}, ${user['yCord']}) - ${user['cordCount']} times (including the pixels you deleted)`
-                        ]
-                    },
-                    {
-                        type: "graph",
-                        layout: "left",
-                        title: "Pixels Placed Per Hour"
-                    },
-                    {
-                        type: "button-group",
-                        layout: "right",
-                        title: "View your pixels placed in 2025",
-                        icon: "dashboard_customize",
-                        buttons: [
-                            {
-                                linkText: "on white background",
-                                classes: "white",
-                                page: "/draw",
-                                queryParams: { "sentFrom": "user", "year": year, "background": "white", "username": username },
-                                external: false
-                            },
-                            {
-                                linkText: "on black background",
-                                classes: "black",
-                                page: "/draw",
-                                queryParams: { "sentFrom": "user", "year": year, "background": "black", "username": username },
-                                external: false
-                            },
-                            {
-                                linkText: "on transparent background",
-                                classes: "dark-grey",
-                                page: "/draw",
-                                queryParams: { "sentFrom": "user", "year": year, "background": "transparent", "username": username },
-                                external: false
-                            }
-                        ]
-                    },
-                ]
-            }
-            return userJson;
+        return allUsersData.find(user => user['username'].toLowerCase() === username.toLowerCase());
+    }
+    return null;
+}
+
+async function getUsersPixels(username: string, year: number) {
+    let pixels = await getPixelDataForYear(year);
+    if (pixels) {
+        return pixels = pixels.filter(pixel => pixel['username'].toLowerCase() === username.toLowerCase());
+    }
+    return null;
+}
+
+export async function getUserStats(username: string, year: number) {
+    const yearCounts = getYearCounts(year);
+    const user = await getUserObject(username, year);
+    const topCount = await countUsersFinalPixels(username, year)
+    if (user) {
+        let userJson: JsonObject = {
+            username: username,
+            year: year,
+            blocks: [
+                {
+                    type: "standard",
+                    layout: "left",
+                    icon: "leaderboard",
+                    content: [
+                        `You ranked ${user['userRank']} out of ${yearCounts[0]['contentValue']} users in ${year}`
+                    ]
+                },
+                {
+                    type: "standard",
+                    layout: "right",
+                    icon: "grid_view",
+                    content: [
+                        `You placed ${user['pixelCount']} pixels throughout the event`
+                    ]
+                },
+                {
+                    type: "standard",
+                    layout: "left",
+                    icon: "arrow_shape_up_stack_2",
+                    content: [
+                        `${topCount} of your pixels (${((topCount / user['pixelCount']) * 100).toFixed(2)}%) made it to the final image at the end of the event`
+                    ]
+                },
+                {
+                    type: "user-color-grid",
+                    layout: "right",
+                    title: "Pixels by color",
+                    data: []
+                },
+                {
+                    type: "standard",
+                    layout: "left",
+                    icon: "colors",
+                    content: [
+                        `You used ${await getNumColorsUsedForUsername(year, username)} out of the ${year === 2023 ? "32" : "34"} colors`
+                    ]
+                },
+                {
+                    type: "standard",
+                    layout: "right",
+                    icon: "kid_star",
+                    content: [
+                        `The coordinate you placed the most pixels on was (${user['xCord']}, ${user['yCord']}) - ${user['cordCount']} times (including the pixels you deleted)`
+                    ]
+                },
+                {
+                    type: "graph",
+                    layout: "left",
+                    title: "Pixels Placed Per Hour"
+                },
+                {
+                    type: "button-group",
+                    layout: "right",
+                    title: "View your pixels placed in 2025",
+                    icon: "dashboard_customize",
+                    buttons: [
+                        {
+                            linkText: "on white background",
+                            classes: "white",
+                            page: "/draw",
+                            queryParams: { "sentFrom": "user", "year": year, "background": "white", "username": username },
+                            external: false
+                        },
+                        {
+                            linkText: "on black background",
+                            classes: "black",
+                            page: "/draw",
+                            queryParams: { "sentFrom": "user", "year": year, "background": "black", "username": username },
+                            external: false
+                        },
+                        {
+                            linkText: "on transparent background",
+                            classes: "dark-grey",
+                            page: "/draw",
+                            queryParams: { "sentFrom": "user", "year": year, "background": "transparent", "username": username },
+                            external: false
+                        }
+                    ]
+                },
+            ]
         }
+        return userJson;
     }
     return null;
 }
@@ -296,38 +309,59 @@ export async function getNumColorsUsedForUsername(year: number, username: string
     }
 }
 
-export async function getPixelsPerHourForUser(year: number, username: string) {
-    const pixelsForYear = await getPixelsForDraw(new DrawParams(year, null, null, null, null, null));
-    if (pixelsForYear) {
-        const firstPixel = pixelsForYear[0];
-        const lastPixel = pixelsForYear[pixelsForYear.length - 1];
-        const pixelsForUser = pixelsForYear.filter(pixel => pixel['username'].toLowerCase() === username.toLowerCase());
-        if (pixelsForUser.length === 0) return [];
-        const sortedPixels = [...pixelsForUser].sort(
-            (a, b) => new Date(a.timePlaced).getTime() - new Date(b.timePlaced).getTime()
-        );
-        const firstPixelDate = new Date(firstPixel.timePlaced);
-        const lastPixelDate = new Date(lastPixel.timePlaced);
-        let currentHour = new Date(firstPixelDate);
-        currentHour.setMinutes(0, 0, 0);
+export async function getPixelsPerHourForUser(year: number, username: string): Promise<DataRow[]> {
+  const pixelsForYear = await getPixelsForDraw(new DrawParams(year, null, null, null, null, null));
+  if (!pixelsForYear || pixelsForYear.length === 0) return [];
 
-        const result: DataRow[] = [];
-        while (currentHour <= lastPixelDate) {
-            const nextHour = new Date(currentHour);
-            nextHour.setHours(currentHour.getHours() + 1);
-            const pixelsInHour = sortedPixels.filter((p) => {
-                const pDate = new Date(p.timePlaced);
-                return pDate >= currentHour && pDate < nextHour;
-            });
+  // 1. Filter for the specific user first
+  const pixelsForUser = pixelsForYear.filter(
+    pixel => pixel.username.toLowerCase() === username.toLowerCase()
+  );
+  if (pixelsForUser.length === 0) return [];
 
-            result.push({
-                timestamp: new Date(currentHour.toISOString()),
-                value: pixelsInHour.length,
-            });
-            currentHour = nextHour;
-        }
-        return result;
-    }
+  // 2. Sort the user's pixels chronologically, sanitizing to UTC safely
+  const sortedUserPixels = [...pixelsForUser].sort((a, b) => {
+    const timeA = new Date(a.timePlaced.replace(" ", "T") + "Z").getTime();
+    const timeB = new Date(b.timePlaced.replace(" ", "T") + "Z").getTime();
+    return timeA - timeB;
+  });
+
+  // 3. Find event boundaries safely using a loop to prevent "too many function arguments" RangeError
+  let eventStartMs = Infinity;
+  let eventEndMs = -Infinity;
+
+  for (let i = 0; i < pixelsForYear.length; i++) {
+    const ts = new Date(pixelsForYear[i].timePlaced.replace(" ", "T") + "Z").getTime();
+    if (ts < eventStartMs) eventStartMs = ts;
+    if (ts > eventEndMs) eventEndMs = ts;
+  }
+
+  // Set the start boundary to the top of the event's first hour
+  let currentHour = new Date(eventStartMs);
+  currentHour.setUTCMinutes(0, 0, 0);
+
+  const lastPixelDate = new Date(eventEndMs);
+  const result: DataRow[] = [];
+
+  // 4. Loop through hourly blocks using matching UTC comparisons
+  while (currentHour <= lastPixelDate) {
+    const nextHour = new Date(currentHour);
+    nextHour.setUTCHours(currentHour.getUTCHours() + 1);
+
+    const pixelsInHour = sortedUserPixels.filter((p) => {
+      const pDateMs = new Date(p.timePlaced.replace(" ", "T") + "Z").getTime();
+      return pDateMs >= currentHour.getTime() && pDateMs < nextHour.getTime();
+    });
+
+    result.push({
+      timestamp: new Date(currentHour.getTime()), // Safe UTC wrapper for charting libraries
+      value: pixelsInHour.length,
+    });
+
+    currentHour = nextHour;
+  }
+
+  return result;
 }
 
 export async function getYearsForUsername(username: string) {
@@ -338,4 +372,310 @@ export async function getYearsForUsername(username: string) {
     } else {
         throw new Error("Could not find user");
     }
+}
+
+const WINDOW_DURATION_MAP = {
+    '1m': 60 * 1000,
+    '10s': 10 * 1000,
+    '5s': 5 * 1000,
+    '1s': 1 * 1000
+} as const;
+type TimeWindow = keyof typeof WINDOW_DURATION_MAP;
+export function getEarlyOrLatePixels(
+    pixels: Pixel[],
+    window: TimeWindow,
+    timestamp: number,
+    start: boolean
+): Pixel[] {
+    const duration = WINDOW_DURATION_MAP[window];
+
+    return pixels.filter(pixel => {
+        const placementMs = new Date(pixel.timePlaced.replace(" ", "T") + "Z").getTime();
+
+        if (start) {
+            // Start window: Look FORWARD from the start timestamp
+            const cutoffMs = timestamp + duration;
+            return placementMs >= timestamp && placementMs < cutoffMs;
+        } else {
+            // End window: Look BACKWARD from the end timestamp
+            const cutoffMs = timestamp - duration;
+            return placementMs >= cutoffMs && placementMs <= timestamp;
+        }
+    });
+}
+
+// Define start and end times per year
+const EVENT_TIMELINES: Record<number, { start: number; end: number }> = {
+    2023: { start: new Date("2023-08-03T22:00:00.000Z").getTime(), end: new Date("2023-08-06T21:59:59.000Z").getTime() },
+    2024: { start: new Date("2024-07-12T04:00:00.000Z").getTime(), end: new Date("2024-07-16T03:59:59.000Z").getTime() },
+    2025: { start: new Date("2025-07-12T04:00:00.000Z").getTime(), end: new Date("2025-07-14T03:59:59.000Z").getTime() },
+};
+
+// Order windows from STRICTEST to MOST LENIENT (Mutual Exclusivity)
+const SPEED_TIERS: { window: TimeWindow; name: string; desc: string; icon: string }[] = [
+    { window: '1s', name: "Opener", desc: "You placed a pixel in the 1st second of the event", icon: "counter_1" },
+    { window: '5s', name: "1st 5 Seconds", desc: "You placed a pixel in the first 5 seconds", icon: "counter_5" },
+    { window: '10s', name: "1st 10 Seconds", desc: "You placed a pixel in the first 10 seconds", icon: "timer_10" },
+    { window: '1m', name: "1st Minute", desc: "You placed a pixel in the 1st minute of the event", icon: "hourglass" },
+];
+
+const LAST_SPEED_TIERS: { window: TimeWindow; name: string; desc: string; icon: string }[] = [
+    { window: '1s', name: "Closer", desc: "You placed a pixel in the final second of the event", icon: "stop_circle" },
+    { window: '5s', name: "Final 5 Seconds", desc: "You placed a pixel in the final 5 seconds", icon: "alarm" },
+    { window: '10s', name: "Final 10 Seconds", desc: "You placed a pixel in the final 10 seconds", icon: "timer_10" },
+    { window: '1m', name: "Final Minute", desc: "You placed a pixel in the final minute of the event", icon: "lock" },
+];
+
+export function checkSpeedAchievements(
+    userPixels: Pixel[],
+    year: number,
+    fullAchievementArray: Achievement[]
+): void {
+    const timeline = EVENT_TIMELINES[year];
+    if (!timeline) return;
+
+    for (const tier of SPEED_TIERS) {
+        const matchedPixels = getEarlyOrLatePixels(userPixels, tier.window, timeline.start, true);
+
+        if (matchedPixels.length > 0) {
+            addOrUpdateAchievement(fullAchievementArray, tier.name, tier.desc, tier.icon, year);
+            break;
+        }
+    }
+
+    for (const tier of LAST_SPEED_TIERS) {
+        const matchedPixels = getEarlyOrLatePixels(userPixels, tier.window, timeline.end, false);
+
+        if (matchedPixels.length > 0) {
+            addOrUpdateAchievement(fullAchievementArray, tier.name, tier.desc, tier.icon, year);
+            break;
+        }
+    }
+}
+
+export interface PixelBreak {
+  durationMs: number;
+  readable: string;
+}
+
+/**
+ * Calculates the time gaps between consecutive pixel placements and returns the 4 largest breaks.
+ * Returns an empty array if there are fewer than 2 pixels.
+ */
+export function getLargestPixelBreaks(pixels: Pixel[]): PixelBreak[] {
+  if (pixels.length < 2) return [];
+
+  const timestamps = pixels
+    .map(p => new Date(p.timePlaced.replace(" ", "T") + "Z").getTime())
+    .sort((a, b) => a - b);
+
+  const breaks: PixelBreak[] = [];
+
+  for (let i = 0; i < timestamps.length - 1; i++) {
+    const diffMs = timestamps[i + 1] - timestamps[i];
+    if (diffMs > 4 * 60 * 60 * 1000) {
+  }
+    breaks.push({
+      durationMs: diffMs,
+      readable: formatDuration(diffMs)
+    });
+  }
+
+  return breaks
+    .sort((a, b) => b.durationMs - a.durationMs)
+    .slice(0, 4);
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  }
+  return `${seconds}s`;
+}
+
+function addOrUpdateAchievement(
+    arr: Achievement[],
+    name: string,
+    desc: string,
+    icon: string,
+    year: number
+) {
+    let ach = arr.find(a => a.name === name);
+    if (!ach) {
+        ach = { name, description: desc, icon, years: [] };
+        arr.push(ach);
+    }
+    if (!ach.years.includes(year)) {
+        ach.years.push(year);
+    }
+}
+
+export interface BoundaryResults {
+    allCornersPlaced: boolean;
+    oppositeSidesPlaced: boolean;
+}
+
+const CANVAS_SIZES: Record<number, { width: number, height: number }> = {
+    2023: { width: 10000, height: 10000 },
+    2024: { width: 10000, height: 500 },
+    2025: { width: 500, height: 500 }
+}
+
+export function checkCanvasBoundaries(
+    pixels: Pixel[],
+    year: number
+): BoundaryResults {
+    const canvasSize = CANVAS_SIZES[year]
+    const minX = 0;
+    const maxX = canvasSize.width - 1;
+    const minY = 0;
+    const maxY = canvasSize.height - 1;
+
+    const targetedCorners = new Set<string>([
+        `${minX},${minY}`,
+        `${maxX},${minY}`,
+        `${minX},${maxY}`,
+        `${maxX},${maxY}`
+    ]);
+    const cornersHit = new Set<string>();
+
+    let hitLeft = false;
+    let hitRight = false;
+    let hitTop = false;
+    let hitBottom = false;
+
+    for (const pixel of pixels) {
+        const x = pixel.xCoordinate;
+        const y = pixel.yCoordinate;
+
+        const coordKey = `${x},${y}`;
+        if (targetedCorners.has(coordKey)) {
+            cornersHit.add(coordKey);
+        }
+
+        if (x === minX) hitLeft = true;
+        if (x === maxX) hitRight = true;
+        if (y === minY) hitTop = true;
+        if (y === maxY) hitBottom = true;
+    }
+
+    const allCornersPlaced = cornersHit.size === 4;
+    const oppositeSidesPlaced = (hitLeft && hitRight) || (hitTop && hitBottom);
+
+    return {
+        allCornersPlaced,
+        oppositeSidesPlaced
+    };
+}
+
+export async function checkAchievementsForUser(
+    username: string,
+    yearsUserParticipated: number[],
+    achievementsStored: Achievement[]
+): Promise<Achievement[]> {
+    let fullAchievementArray: Achievement[] = achievementsStored.map(ach => ({
+        ...ach,
+        years: [...ach.years]
+    }));
+
+    for (const year of yearsUserParticipated) {
+        const userStatsForYear = await getUserObject(username, year);
+        if (!userStatsForYear) continue;
+
+        const rank = userStatsForYear["userRank"];
+
+        // Ranking checks using the helper
+        if (rank <= 10) {
+            addOrUpdateAchievement(fullAchievementArray, "Top 10", "You made it into the top 10 users", "star_shine", year);
+        } else if (rank <= 25) {
+            addOrUpdateAchievement(fullAchievementArray, "Top 25", "You made it into the top 25 users", "star", year);
+        } else if (rank <= 50) {
+            addOrUpdateAchievement(fullAchievementArray, "Top 50", "You made it into the top 50 users", "star", year);
+        }
+        
+        else if (rank <= 100) {
+            addOrUpdateAchievement(fullAchievementArray, "Top 100", "You made it into the top 100 users", "star", year);
+        } else {
+            addOrUpdateAchievement(fullAchievementArray, "Participation Trophy", "You placed pixels during the event", "trophy", year);
+        }
+
+        // Pixel count checks
+        if (userStatsForYear["pixelCount"] === 42) {
+            addOrUpdateAchievement(
+                fullAchievementArray,
+                "Answer to the Ultimate Question of Life, the Universe, and Everything",
+                "You placed exactly 42 pixels during the event",
+                "planet",
+                year
+            );
+        } else if (userStatsForYear["pixelCount"] === 69) {
+            addOrUpdateAchievement(fullAchievementArray, "Nice", "You placed exactly 69 pixels during the event", "thumb_up", year);
+        } else if (userStatsForYear["pixelCount"] === 420) {
+            addOrUpdateAchievement(fullAchievementArray, "Alright Alright Alright", "You placed exactly 420 pixels during the event", "thumb_up", year);
+        }
+
+        // Pixel placement color checks
+        const totalColors = year === 2023 ? 32 : 34;
+        const numColorsUsed = await getNumColorsUsedForUsername(year, username);
+        if (numColorsUsed === totalColors) {
+            addOrUpdateAchievement(fullAchievementArray, "Taste the Rainbow", "You used every color", "looks", year);
+        } else if (numColorsUsed === 1) {
+            addOrUpdateAchievement(fullAchievementArray, "Monocolor", "You used only 1 color", "colors", year);
+        }
+
+        // Pixel array operations (Undone check + New Speed Check)
+        const mostContestedPixels: Record<number, {x: number, y: number}> = {
+            2023: { x: 175, y: 171},
+            2024: { x: 10, y: 262 },
+            2025: { x: 304, y: 40 }
+        }
+        const userPixels = await getUsersPixels(username, year);
+        if (userPixels && userPixels.length > 0) {
+
+            // Execute the early/late time window validations right here
+            checkSpeedAchievements(userPixels, year, fullAchievementArray);
+
+            const undonePixels = userPixels.reduce((acc: number, pixel: Pixel) => {
+                if (pixel["isUndo"]) acc += 1;
+                return acc;
+            }, 0);
+
+            if (undonePixels === 0) {
+                addOrUpdateAchievement(fullAchievementArray, "No Mistakes", "You did not click the undo button", "delete_forever", year);
+            } else if (undonePixels === userPixels.length) {
+                addOrUpdateAchievement(fullAchievementArray, "Delete Your Art", "You clicked undo after every pixel you placed", "delete", year);
+            }
+
+            const boundsCheck = checkCanvasBoundaries(userPixels, year);
+            if (boundsCheck.allCornersPlaced) {
+                addOrUpdateAchievement(fullAchievementArray, "Four Corners", "You placed a pixel in all 4 corners of the map", "crop_free", year);
+            }
+            if (boundsCheck.oppositeSidesPlaced) {
+                addOrUpdateAchievement(fullAchievementArray, "Worlds Apart", "You placed pixels on opposite sides of the canvas", "swap_horiz", year);
+            }
+
+            const mostContestedPixelForYear = mostContestedPixels[year];
+            const userContestedCheck = userPixels.filter(pixel => pixel.xCoordinate === mostContestedPixelForYear.x && pixel.yCoordinate === mostContestedPixelForYear.y);
+            if (userContestedCheck.length > 0) {
+                addOrUpdateAchievement(fullAchievementArray, "Most Contested", "You placed a pixel on the most contested pixel on the canvas", "layers", year);
+            }
+
+            const topPixels = userPixels.filter(pixel => pixel.isTop);
+            if (topPixels.length >= 90) {
+                addOrUpdateAchievement(fullAchievementArray, "Can't Cover me", "90% or more of your pixels made it to the end of the event", "mountain_flag", year);
+            } else if (topPixels.length < 10) {
+                addOrUpdateAchievement(fullAchievementArray, "Cover-up", "Less than 10% of your pixels made it to the end of the event", "shades_closed", year);
+            }
+
+        }
+    }
+
+    return fullAchievementArray;
 }

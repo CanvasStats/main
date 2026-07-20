@@ -437,42 +437,46 @@ class Message {
   }
 }
 
-export function createMessage(message: string, location: string, type: string) {
+export function createMessage(
+  message: string, 
+  location: string, 
+  type: string, 
+  timeoutSeconds: number = 0
+) {
   clearMessages();
-  const body = document.querySelector("body") as HTMLElement;
-  let messageWrapper = makeElement("div", null, "message-wrapper", null)
-  if (location === "main-message") {
-    messageWrapper = makeElement("div", "main-message", "message-wrapper", null) as HTMLElement;
-  }
+  const typeMap: Record<string, { class: string; role?: string; live?: string }> = {
+    check_circle: { class: "success message", live: "polite" },
+    error:        { class: "error message",   role: "alert" },
+    delete:       { class: "warn message",    live: "polite" },
+    warning:      { class: "warn message",    live: "polite" }
+  };
+
+  if (type === "error") console.error(message);
+  if (type === "delete" || type === "warning") console.warn(message);
+
+  const config = typeMap[type] || { class: "info message", live: "polite" };
+  const wrapperId = location === "main-message" ? "main-message" : null;
+  const messageWrapper = makeElement("div", wrapperId, "message-wrapper", null) as HTMLElement;
+
   const messageDiv = document.createElement("div");
-  if (type === "check_circle") {
-    messageDiv.setAttribute("class", "success message");
-    messageDiv.setAttribute("aria-live", "polite");
-  } else if (type === "error") {
-    messageDiv.setAttribute("class", "error message");
-    messageDiv.setAttribute("role", "alert");
-    console.error(message);
-  } else if (type === "delete" || type === "warning") {
-    messageDiv.setAttribute("class", "warn message");
-    messageDiv.setAttribute("aria-live", "polite");
-    console.warn(message);
-  } else {
-    messageDiv.setAttribute("class", "info message");
-    messageDiv.setAttribute("aria-live", "polite");
-  }
+  messageDiv.className = config.class;
+  if (config.role) messageDiv.setAttribute("role", config.role);
+  if (config.live) messageDiv.setAttribute("aria-live", config.live);
+
   const icon = makeElement("span", null, "material-symbols-outlined", type);
-  document.createElement("span");
-  messageDiv.appendChild(icon);
   const messageText = document.createTextNode(message);
-  messageDiv.appendChild(messageText);
+  
   const closeButton = document.createElement("button");
   closeButton.type = "button";
-  const closeIcon = makeElement("span", null, "material-symbols-outlined", "close");
-  closeButton.appendChild(closeIcon);
-  closeButton.addEventListener("click", () => (messageWrapper.innerHTML = ""));
-  messageDiv.appendChild(closeButton);
+  closeButton.appendChild(makeElement("span", null, "material-symbols-outlined", "close"));
+
+  messageDiv.append(icon, messageText, closeButton);
   messageWrapper.appendChild(messageDiv);
-  body.prepend(messageWrapper);
+  document.body.prepend(messageWrapper);
+
+  const dismiss = () => { messageWrapper.innerHTML = ""; };
+  closeButton.addEventListener("click", dismiss);
+  if (timeoutSeconds > 0) setTimeout(dismiss, timeoutSeconds * 1000);
 }
 
 export function clearMessages() {
