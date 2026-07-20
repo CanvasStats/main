@@ -89,7 +89,7 @@ async function updateStats() {
             statsContainer.appendChild(treemap);
             const dynamicRatio = window.innerWidth < 600 ? 1.0 : 0.6;
             if (viewYear === 2026) {
-                createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear, 250000);
+                createColorTreemap(treemapContainer, colorCounts, dynamicRatio, false, viewYear, 250000);
             } else {
                 createColorTreemap(treemapContainer, colorCounts, dynamicRatio, true, viewYear, 0);
             }
