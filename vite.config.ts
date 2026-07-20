@@ -23,13 +23,16 @@ export default defineConfig({
   },
   plugins: [
     VitePWA({
-      //Web App Manifest configuration
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      //Workbox configuration
       workbox: {
+        maximumFileSizeToCacheInBytes: 5000000, 
+        
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,json}'],
         cleanupOutdatedCaches: true,
+        
+        navigateFallback: null,
+
         ignoreURLParametersMatching: [/^id$/, /^term$/, /^year$/, /^user$/, /^name$/, /^search$/, /^sentFrom$/, /^background$/, /^undo$/, /^color$/, /^isTop$/, /^special$/, /^reverse$/, /^username$/, /^utm_/, /^fbclid$/],
         runtimeCaching: [
           {
