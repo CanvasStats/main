@@ -409,7 +409,7 @@ const EVENT_TIMELINES: Record<number, { start: number; end: number }> = {
     2023: { start: new Date("2023-08-03T22:00:00.000Z").getTime(), end: new Date("2023-08-06T21:59:59.000Z").getTime() },
     2024: { start: new Date("2024-07-12T04:00:00.000Z").getTime(), end: new Date("2024-07-16T03:59:59.000Z").getTime() },
     2025: { start: new Date("2025-07-12T04:00:00.000Z").getTime(), end: new Date("2025-07-14T03:59:59.000Z").getTime() },
-    2026: { start: new Date("2026-07-18T04:00:00.000Z").getTime(), end: new Date("2025-07-20T03:59:59.000Z").getTime() }
+    2026: { start: new Date("2026-07-18T04:00:00.000Z").getTime(), end: new Date("2026-07-20T04:00:00.000Z").getTime() }
 };
 
 // Order windows from STRICTEST to MOST LENIENT (Mutual Exclusivity)
@@ -603,9 +603,8 @@ export async function checkAchievementsForUser(
         }
         else if (rank <= 100) {
             addOrUpdateAchievement(fullAchievementArray, "Top 100", "You made it into the top 100 users", "star", year);
-        } else {
-            addOrUpdateAchievement(fullAchievementArray, "Participation Trophy", "You placed pixels during the event", "trophy", year);
         }
+        addOrUpdateAchievement(fullAchievementArray, "Participation Trophy", "You placed pixels during the event", "trophy", year);
 
         // Pixel count checks
         if (userStatsForYear["pixelCount"] === 42) {
@@ -631,7 +630,6 @@ export async function checkAchievementsForUser(
             addOrUpdateAchievement(fullAchievementArray, "Monocolor", "You used only 1 color", "colors", year);
         }
 
-        // Pixel array operations (Undone check + New Speed Check)
         const mostContestedPixels: Record<number, {x: number, y: number}> = {
             2023: { x: 175, y: 171},
             2024: { x: 10, y: 262 },
@@ -640,8 +638,6 @@ export async function checkAchievementsForUser(
         }
         const userPixels = await getUsersPixels(username, year);
         if (userPixels && userPixels.length > 0) {
-
-            // Execute the early/late time window validations right here
             checkSpeedAchievements(userPixels, year, fullAchievementArray);
 
             const undonePixels = userPixels.reduce((acc: number, pixel: Pixel) => {

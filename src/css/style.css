@@ -555,56 +555,58 @@ main a {
 }
 
 .dark-purple.ach {
-  position: relative;
-  background-color: var(--color-background);
-  border-radius: 12px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+    position: relative;
+    background-color: var(--color-background);
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 .dark-purple.ach .tooltip-card {
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
-  width: 190px;
-  
-  background-color: #242367;
-  color: #ffffff;
-  padding: 10px 12px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  border: 1px solid #4c1d95;
-  
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 50;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    width: 190px;
+
+    background-color: #242367;
+    color: #ffffff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border: 1px solid #4c1d95;
+
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+    z-index: 50;
 }
 
 .dark-purple.ach .tooltip-title {
-  display: block;
-  font-weight: 800;
-  font-size: 17px;
-  line-height: 1.3;
-  margin-bottom: 6px;
+    display: block;
+    font-weight: 800;
+    font-size: 17px;
+    line-height: 1.3;
+    margin-bottom: 6px;
 }
 
 .dark-purple.ach .tooltip-desc {
-  margin: 0;
-  font-weight: 400;
-  font-size: 15px;
-  line-height: 1.4;
+    margin: 0;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.4;
 }
 
 .dark-purple.ach:hover .tooltip-card {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
 }
 
 /*Year Selector*/
@@ -851,6 +853,37 @@ footer {
     #loading-main #wrapper {
         flex-direction: column;
     }
+
+    #achievements-flexbox {
+        justify-content: flex-start;
+        padding: 10px; 
+    }
+    
+    #achievements-flexbox div {
+        margin: 8px 5px; 
+    }
+
+    #achievements {
+        position: relative; 
+    }
+
+    .dark-purple.ach {
+        position: static; 
+    }
+
+    .dark-purple.ach .tooltip-card {
+        position: absolute;
+        bottom: 102%; 
+        left: 50%;
+        transform: translate(-50%, 0) scale(0.9);
+        width: calc(100% - 30px);
+        max-width: 260px;
+    }
+
+    .dark-purple.ach:hover .tooltip-card {
+        transform: translate(-50%, 0) scale(1);
+    }
+
     article {
         padding: 5px;
     }

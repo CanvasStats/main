@@ -73,8 +73,7 @@ years.forEach((year: ContentPair) => {
 
         loadInstanceList();
     }
-
-    if (year.contentKey !== "2026") filterRow.appendChild(yearButton);
+    filterRow.appendChild(yearButton);
 });
 main.appendChild(filterRow);
 main.append(heading);
