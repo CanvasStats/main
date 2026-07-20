@@ -1,7 +1,7 @@
 import type { Achievement } from "../models";
 
 const DB_NAME = 'pwa_stats_db';
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 const SETTINGS_STORE = 'settings';
 const ACHIEVEMENTS_STORE = 'achievements';
 const CLAIMED_KEY = 'claimed_user';
@@ -27,15 +27,17 @@ export function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(ACHIEVEMENTS_STORE)) {
         db.createObjectStore(ACHIEVEMENTS_STORE, { keyPath: 'id' });
       }
+
+      const transaction = request.transaction;
+      if (transaction && oldVersion > 0) {
+        const settingsStore = transaction.objectStore(SETTINGS_STORE);
+        settingsStore.put(oldVersion, 'last_known_version');
+      }
     };
 
     request.onsuccess = () => {
       const db = request.result;
-
-      // Update the last known version in the settings store immediately on success
-      const tx = db.transaction(SETTINGS_STORE, 'readwrite');
-      tx.objectStore(SETTINGS_STORE).put(DB_VERSION, 'last_known_version');
-
+      
       db.onversionchange = () => {
         db.close();
         window.dispatchEvent(new Event('db-version-changed'));
@@ -168,20 +170,21 @@ export async function checkForExistingAchievements(): Promise<'good' | 'update' 
 export async function addAchievementsToDB(achievements: Achievement[]): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(ACHIEVEMENTS_STORE, 'readwrite');
-    const store = tx.objectStore(ACHIEVEMENTS_STORE);
+    const tx = db.transaction([ACHIEVEMENTS_STORE, SETTINGS_STORE], 'readwrite');
+    const achStore = tx.objectStore(ACHIEVEMENTS_STORE);
+    const settingsStore = tx.objectStore(SETTINGS_STORE);
 
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
-
     for (const achievement of achievements) {
       const structuredRecord: Achievement & { id: string } = {
         ...achievement,
         id: achievement.name
       };
-      
-      store.put(structuredRecord);
+      achStore.put(structuredRecord);
     }
+
+    settingsStore.put(DB_VERSION, 'last_known_version');
   });
 }
 

@@ -135,17 +135,20 @@ if (usernameString) {
 async function loadAchievements() {
     const hasExistingAchievements = await checkForExistingAchievements();
     let fullAchievementArray: Achievement[] = [];
+
     if (hasExistingAchievements === "good") {
         fullAchievementArray = await getAllAchievementsFromDB();
     } else if (hasExistingAchievements === "update") {
         const tempAchArray = await getAllAchievementsFromDB();
         fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, tempAchArray);
         await addAchievementsToDB(fullAchievementArray);
-        createMessage(`You unlocked ${fullAchievementArray.length} Achievement!`, "main-message", "info", 5);
+
+        createMessage(`You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
     } else {
         fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, []);
         await addAchievementsToDB(fullAchievementArray);
-        createMessage(`You unlocked ${fullAchievementArray.length} Achievement!`, "main-message", "info", 5);
+
+        createMessage(`You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
     }
     achievementSection.innerHTML = "";
     const legend = makeElement("legend", null, null, "Achievements");
