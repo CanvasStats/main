@@ -1,13 +1,15 @@
 import { ContentPair, DrawParams, Pixel } from "../models";
 import { createMessage, fetchHTML, getRandomColor } from "../modules/utils";
 
-const years: string[] = ["2023", "2024", "2025"];
+const years: string[] = ["2023", "2024", "2025", "2026"];
 const yearUserCounts: ContentPair[] = [
+    new ContentPair("2026", "589"),
     new ContentPair("2025", "638"),
     new ContentPair("2024", "1912"),
     new ContentPair("2023", "2204")
 ];
 const yearPixelCounts: ContentPair[] = [
+    new ContentPair("2026", "~ 309k"),
     new ContentPair("2025", "308439"),
     new ContentPair("2024", "642643"),
     new ContentPair("2023", "628416")
