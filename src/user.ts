@@ -5,7 +5,7 @@ import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createMessage, makeElement, storeMessage } from "./modules/utils";
 import { getYears } from "./services/canvas.service";
-import { getClaimedUser, setClaimedUser, checkForExistingAchievements, getAllAchievementsFromDB, addAchievementsToDB } from "./services/db.service";
+import { getClaimedUser, setClaimedUser, checkForExistingAchievements, getAllAchievementsFromDB, addAchievementsToDB, clearAchievementsFromDB } from "./services/db.service";
 import { checkAchievementsForUser, GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
 
 const main = document.querySelector('main') as HTMLElement;
@@ -69,6 +69,7 @@ if (usernameString) {
         claimProfileButton.addEventListener("click", async () => {
             try {
                 await setClaimedUser(usernameString);
+                await clearAchievementsFromDB();
                 window.location.reload();
             } catch (error: any) {
                 createMessage(error, "main-message", "error");

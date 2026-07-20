@@ -599,7 +599,6 @@ export async function checkAchievementsForUser(
         } else if (rank <= 50) {
             addOrUpdateAchievement(fullAchievementArray, "Top 50", "You made it into the top 50 users", "star", year);
         }
-        
         else if (rank <= 100) {
             addOrUpdateAchievement(fullAchievementArray, "Top 100", "You made it into the top 100 users", "star", year);
         } else {
