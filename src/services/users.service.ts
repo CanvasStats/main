@@ -409,6 +409,7 @@ const EVENT_TIMELINES: Record<number, { start: number; end: number }> = {
     2023: { start: new Date("2023-08-03T22:00:00.000Z").getTime(), end: new Date("2023-08-06T21:59:59.000Z").getTime() },
     2024: { start: new Date("2024-07-12T04:00:00.000Z").getTime(), end: new Date("2024-07-16T03:59:59.000Z").getTime() },
     2025: { start: new Date("2025-07-12T04:00:00.000Z").getTime(), end: new Date("2025-07-14T03:59:59.000Z").getTime() },
+    2026: { start: new Date("2026-07-18T04:00:00.000Z").getTime(), end: new Date("2025-07-20T03:59:59.000Z").getTime() }
 };
 
 // Order windows from STRICTEST to MOST LENIENT (Mutual Exclusivity)
@@ -525,7 +526,8 @@ export interface BoundaryResults {
 const CANVAS_SIZES: Record<number, { width: number, height: number }> = {
     2023: { width: 10000, height: 10000 },
     2024: { width: 10000, height: 500 },
-    2025: { width: 500, height: 500 }
+    2025: { width: 500, height: 500 },
+    2026: { width: 500, height: 500 }
 }
 
 export function checkCanvasBoundaries(
@@ -633,7 +635,8 @@ export async function checkAchievementsForUser(
         const mostContestedPixels: Record<number, {x: number, y: number}> = {
             2023: { x: 175, y: 171},
             2024: { x: 10, y: 262 },
-            2025: { x: 304, y: 40 }
+            2025: { x: 304, y: 40 },
+            2026: { x: 40, y: 170}
         }
         const userPixels = await getUsersPixels(username, year);
         if (userPixels && userPixels.length > 0) {
