@@ -177,8 +177,6 @@ async function updateStats() {
     loadingText.textContent = "Calculating pixels placed per hour";
     let pixelsPerHour: DataRow[] | undefined = await getPixelsPerHourForUser(viewYear, username);
     if (userData) {
-        const usernameHeading = makeElement("h2", null, null, username);
-        statsContainer.appendChild(usernameHeading);
         userData.blocks.forEach(async (block: any) => {
             const structure = getBlockStructure(block, viewYear);
             if (block.type === "user-color-grid") {
