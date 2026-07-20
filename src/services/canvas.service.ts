@@ -39,45 +39,53 @@ export function getYearCounts(year: number): ContentPair[] {
 export async function getPixelDataForYear(year: number) {
     try {
         const pixelsCSVData = await fetchHTML(`${baseURL}/${year}/pixels${year}.csv`);
-        if (pixelsCSVData) {
-            //Split the csv file into lines
-            const lines = pixelsCSVData.trim().split('\n');
-            //Define the column headers
-            const header = lines[0].split(',').map((h: string) => h.trim());
-            const usernameIndex = header.indexOf('username');
-            const xCoordinateIndex = header.indexOf('xCoordinate');
-            const yCoordinateIndex = header.indexOf('yCoordinate');
-            const colorHexIndex = header.indexOf('colorHex');
-            const isTopIndex = header.indexOf('isTop');
-            const isUndoIndex = header.indexOf('isUndo');
-            const isSpecialIndex = header.indexOf('isSpecial');
-            const timePlacedIndex = header.indexOf("timePlaced");
+        if (!pixelsCSVData) return null;
+        const cleanCSV = pixelsCSVData.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = cleanCSV.trim().split('\n');
 
-            const pixelList: Pixel[] = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',');
-                if (values.length === header.length) {
-                    const pixel: Pixel = {
-                        username: values[usernameIndex]?.trim() || '',
-                        xCoordinate: +values[xCoordinateIndex]?.trim() || 0,
-                        yCoordinate: +values[yCoordinateIndex]?.trim() || 0,
-                        colorHex: values[colorHexIndex]?.trim() || '',
-                        isTop: +values[isTopIndex]?.trim() == 1 || false,
-                        isUndo: +values[isUndoIndex]?.trim() == 1 || false,
-                        isSpecial: +values[isSpecialIndex]?.trim() == 1 || false,
-                        timePlaced: values[timePlacedIndex]?.trim() || ''
-                    }
-                    pixelList.push(pixel)
-                } else {
-                    console.warn(`Skipping row ${i + 1} due to incorrect number of columns.`);
-                }
+        if (lines.length < 2) return [];
+        const header = lines[0].split(',').map(h => h.trim());
+        const usernameIndex = header.indexOf('username');
+        const xCoordinateIndex = header.indexOf('xCoordinate');
+        const yCoordinateIndex = header.indexOf('yCoordinate');
+        const colorHexIndex = header.indexOf('colorHex');
+        const isTopIndex = header.indexOf('isTop');
+        const isUndoIndex = header.indexOf('isUndo');
+        const isSpecialIndex = header.indexOf('isSpecial');
+        const timePlacedIndex = header.indexOf('timePlaced');
+
+        const pixelList: Pixel[] = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const row = lines[i].trim();
+            if (!row) continue;
+
+            const values = row.split(',').map(v => v.trim());
+
+            if (values.length === header.length) {
+                const rawX = values[xCoordinateIndex];
+                const rawY = values[yCoordinateIndex];
+                const pixel: Pixel = {
+                    username: values[usernameIndex] || '',
+                    xCoordinate: rawX !== undefined && rawX !== '' ? Number(rawX) : 0,
+                    yCoordinate: rawY !== undefined && rawY !== '' ? Number(rawY) : 0,
+                    colorHex: values[colorHexIndex] || '#000000',
+                    isTop: Number(values[isTopIndex]) === 1,
+                    isUndo: Number(values[isUndoIndex]) === 1,
+                    isSpecial: Number(values[isSpecialIndex]) === 1,
+                    timePlaced: values[timePlacedIndex] || ''
+                };
+
+                pixelList.push(pixel);
+            } else {
+                console.warn(`Skipping row ${i + 1}: Expected ${header.length} columns, got ${values.length}`);
             }
-            return pixelList;
         }
-        return null;
+
+        return pixelList;
     } catch (error: any) {
         createMessage("Error loading pixel data. Please try reloading the page", "main-message", "error");
-        console.log(`Reason for failed fetch: ${error}`);
+        console.error(`Reason for failed fetch:`, error);
         return null;
     }
 }

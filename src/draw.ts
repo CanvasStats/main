@@ -22,7 +22,7 @@ const reverseString: string | null = urlParams.get("reverse");
 let instanceIdString: string | null = urlParams.get('id'); 
 const instanceId: number = instanceIdString ? parseInt(instanceIdString) : 0;
 const undoString = urlParams.get('undo');
-const isTopString = urlParams.get('isTop');
+const isTopString = urlParams.get('topOnly');
 const specialString = urlParams.get('special');
 
 const years = getYears(false);
