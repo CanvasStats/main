@@ -577,6 +577,27 @@ export function checkCanvasBoundaries(
     };
 }
 
+function hasAtLeast100Duplicates(userPixels: Pixel[]): boolean {
+  const counts = new Map<string, number>();
+  let uniqueDuplicatesCount = 0;
+
+  for (const pixel of userPixels) {
+    const key = `${pixel.xCoordinate},${pixel.yCoordinate}`;
+    const currentCount = (counts.get(key) || 0) + 1;
+    counts.set(key, currentCount);
+
+    if (currentCount === 2) {
+      uniqueDuplicatesCount++;
+
+      if (uniqueDuplicatesCount >= 100) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export async function checkAchievementsForUser(
     username: string,
     yearsUserParticipated: number[],
@@ -607,19 +628,7 @@ export async function checkAchievementsForUser(
         addOrUpdateAchievement(fullAchievementArray, "Participation Trophy", "You placed pixels during the event", "trophy", year);
 
         // Pixel count checks
-        if (userStatsForYear["pixelCount"] === 42) {
-            addOrUpdateAchievement(
-                fullAchievementArray,
-                "Answer to the Ultimate Question of Life, the Universe, and Everything",
-                "You placed exactly 42 pixels during the event",
-                "planet",
-                year
-            );
-        } else if (userStatsForYear["pixelCount"] === 69) {
-            addOrUpdateAchievement(fullAchievementArray, "Nice", "You placed exactly 69 pixels during the event", "thumb_up", year);
-        } else if (userStatsForYear["pixelCount"] === 420) {
-            addOrUpdateAchievement(fullAchievementArray, "Alright Alright Alright", "You placed exactly 420 pixels during the event", "thumb_up", year);
-        }
+        //coming soon
 
         // Pixel placement color checks
         const totalColors = year === 2023 ? 32 : 34;
@@ -672,6 +681,24 @@ export async function checkAchievementsForUser(
                 addOrUpdateAchievement(fullAchievementArray, "Cover-up", "Less than 10% of your pixels made it to the end of the event", "shades_closed", year);
             }
 
+            const specialNumbers: {specialNumber: number, name: string, icon: string}[] = [
+                {specialNumber: 13, name: "Unlucky", icon: "thumb_down"},
+                {specialNumber: 42, name: "Answer to the Ultimate Question of Life, the Universe, and Everything", icon: "planet"},
+                {specialNumber: 69, name: "Nice", icon: "thumb_up"},
+                {specialNumber: 420, name: "Alright Alright Alright", icon: "thumbs_up_double"},
+                {specialNumber: 666, name: "Diablo", icon: "skull"},];
+            for (const num of specialNumbers) {
+                const filteredPixelsCoord = userPixels.filter(pixel => pixel.xCoordinate === num.specialNumber || pixel.yCoordinate === num.specialNumber);
+                if (userStatsForYear["pixelCount"] === num.specialNumber) {
+                    addOrUpdateAchievement(fullAchievementArray, `${num.name} Count`, `Placed exactly ${num.specialNumber} pixels`, num.icon, year);
+                } else if (filteredPixelsCoord.length != 0) {
+                    addOrUpdateAchievement(fullAchievementArray, `${num.name} Coordinate`, `Placed a pixel on a coordinate containing ${num.specialNumber}`, num.icon, year);
+                }
+            }
+
+            if (hasAtLeast100Duplicates(userPixels)) {
+                addOrUpdateAchievement(fullAchievementArray, "You know there is an undo button, right?", "Cover 100 of your own pixels", "question_mark", year);
+            }
         }
     }
 
