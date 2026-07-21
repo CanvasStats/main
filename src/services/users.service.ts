@@ -173,7 +173,7 @@ export async function getUserStats(username: string, year: number) {
                 {
                     type: "button-group",
                     layout: "right",
-                    title: "View your pixels placed in 2025",
+                    title: `View your pixels placed in ${year}`,
                     icon: "dashboard_customize",
                     buttons: [
                         {
@@ -675,9 +675,10 @@ export async function checkAchievementsForUser(
             }
 
             const topPixels = userPixels.filter(pixel => pixel.isTop);
-            if (topPixels.length >= 90) {
-                addOrUpdateAchievement(fullAchievementArray, "Can't Cover me", "90% or more of your pixels made it to the end of the event", "mountain_flag", year);
-            } else if (topPixels.length < 10) {
+            const topCoverage = Number(((topPixels.length / userStatsForYear["pixelCount"]) * 100).toFixed(2));
+            if (topCoverage > 90) {
+                addOrUpdateAchievement(fullAchievementArray, "Can't Cover me", "Over 90% of your pixels made it to the end of the event", "mountain_flag", year);
+            } else if (topCoverage < 10) {
                 addOrUpdateAchievement(fullAchievementArray, "Cover-up", "Less than 10% of your pixels made it to the end of the event", "shades_closed", year);
             }
 

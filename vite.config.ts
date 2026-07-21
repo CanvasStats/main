@@ -26,11 +26,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       workbox: {
-        maximumFileSizeToCacheInBytes: 5000000, 
-        
+        maximumFileSizeToCacheInBytes: 5000000,
+
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,json}'],
         cleanupOutdatedCaches: true,
-        
+
         navigateFallback: null,
 
         ignoreURLParametersMatching: [/^id$/, /^term$/, /^year$/, /^user$/, /^name$/, /^search$/, /^sentFrom$/, /^background$/, /^undo$/, /^color$/, /^isTop$/, /^special$/, /^reverse$/, /^username$/, /^utm_/, /^fbclid$/],
@@ -39,7 +39,7 @@ export default defineConfig({
             urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'google-fonts-stylesheets',
+              cacheName: 'google-fonts-stylesheets-v2',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 * 365
