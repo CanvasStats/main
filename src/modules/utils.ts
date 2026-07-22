@@ -394,7 +394,7 @@ export function createSocialBlock(direction: string, articleHeading: string, art
     newLink.target = "_blank";
     const randomColor = getRandomColor(index, true);
     if (link.linkText === "Atlas") {
-      if (year !== 2023 && year !== 2026) {
+      if (year !== 2023) {
         newLink.href = `https://${year}.canvas-atlas.fediverse.events/`;
         const linkText = `${year} ${link.linkText}`;
         const icon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
