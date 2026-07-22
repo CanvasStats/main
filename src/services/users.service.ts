@@ -676,6 +676,7 @@ export async function checkAchievementsForUser(
 
             const topPixels = userPixels.filter(pixel => pixel.isTop);
             const topCoverage = Number(((topPixels.length / userStatsForYear["pixelCount"]) * 100).toFixed(2));
+            console.log(`${year} = ${topCoverage}`)
             if (topCoverage > 90) {
                 addOrUpdateAchievement(fullAchievementArray, "Can't Cover me", "Over 90% of your pixels made it to the end of the event", "mountain_flag", year);
             } else if (topCoverage < 10) {
