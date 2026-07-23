@@ -58,6 +58,11 @@ search.addEventListener("input", (e) => {
     usernameString = searchInput.value.toString();
     loadUserList()
 });
+search.addEventListener('keydown', (e: KeyboardEvent): void => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+  }
+});
 
 const returnToTopArrow = document.getElementById("return-to-top") as HTMLElement;
 const randomColor = getRandomColor(1, true);

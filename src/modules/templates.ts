@@ -32,6 +32,7 @@ const navItems: LinkWithIcon[] = [
     { linkText: "Home", href: "/", external: false, materialIcon: "home" },
     { linkText: "Users", href: "/users/", external: false, materialIcon: "group" },
     { linkText: "Instances", href: "/instances/", external: false, materialIcon: "dns" },
+    { linkText: "Advanced Search", href:"/advanced-search", external: false, materialIcon: "search" },
     { linkText: "F.A.Q.", href: "/faq", external: false, materialIcon: "contact_support" },
     { linkText: "Go To Canvas", href: "https://canvas.fediverse.events", external: true, materialIcon: "open_in_new" }
 ]

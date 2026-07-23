@@ -294,7 +294,7 @@ export async function comingSoonBlock(statsContainer: HTMLElement, countdownInte
     templateInfo.append(templateP, templateButtonRow);
     templateArticle.append(templateIcon, templateInfo);
     statsContainer.appendChild(templateArticle);
-    
+
     if (liveStats && initialRemainingToStart.isFinished) {
       const liveUpdate: LiveStats = await getLiveColorCounts();
       if (liveUpdate) {
@@ -438,17 +438,17 @@ class Message {
 }
 
 export function createMessage(
-  message: string, 
-  location: string, 
-  type: string, 
+  message: string,
+  location: string,
+  type: string,
   timeoutSeconds: number = 0
 ) {
   clearMessages();
   const typeMap: Record<string, { class: string; role?: string; live?: string }> = {
     check_circle: { class: "success message", live: "polite" },
-    error:        { class: "error message",   role: "alert" },
-    delete:       { class: "warn message",    live: "polite" },
-    warning:      { class: "warn message",    live: "polite" }
+    error: { class: "error message", role: "alert" },
+    delete: { class: "warn message", live: "polite" },
+    warning: { class: "warn message", live: "polite" }
   };
 
   if (type === "error") console.error(message);
@@ -465,7 +465,7 @@ export function createMessage(
 
   const icon = makeElement("span", null, "material-symbols-outlined", type);
   const messageText = document.createTextNode(message);
-  
+
   const closeButton = document.createElement("button");
   closeButton.type = "button";
   closeButton.appendChild(makeElement("span", null, "material-symbols-outlined", "close"));
@@ -494,4 +494,42 @@ export function storeMessage(
   clearMessages();
   const messageToStore = new Message(message, messageContainer, icon);
   sessionStorage.setItem("message", JSON.stringify(messageToStore));
+}
+
+export function createInput(inputType: string, id: string, labelText: string | null, placeholderText: string | null, group: string | null, selected?: boolean) {
+  if (inputType === "radio") {
+    const radioContainer = makeElement("div", null, null, null);
+    const label = makeElement("label", null, "custom-radio", null);
+    const input = document.createElement("input") as HTMLInputElement;
+    input.type = "radio";
+    if (selected) input.checked = selected;
+    if (group) input.name = group;
+    input.value = id;
+    input.id = id;
+    const span = makeElement("span", null, null, labelText);
+    label.append(input, span);
+    radioContainer.appendChild(label);
+    return radioContainer;
+  } else if (inputType === "text" || inputType === "number") {
+    const inputContainer = makeElement("div", null, "form-row", null);
+    if (labelText) {
+      const label = makeElement("label", null, null, labelText) as HTMLLabelElement;
+      label.htmlFor = id;
+      inputContainer.appendChild(label);
+    }
+    const inputElem = document.createElement("input") as HTMLInputElement;
+    inputElem.id = id;
+    inputElem.name = id;
+    inputElem.type = inputType;
+    if (placeholderText) inputElem.placeholder = placeholderText;
+    inputContainer.appendChild(inputElem);
+    return inputContainer;
+  }
+  else {
+    const inputElem = document.createElement("input") as HTMLInputElement;
+    inputElem.id = id;
+    inputElem.name = id;
+    inputElem.type = inputType;
+    return inputElem;
+  }
 }

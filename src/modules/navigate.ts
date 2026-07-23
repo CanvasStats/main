@@ -9,6 +9,7 @@ export const ALL_APP_PATHS = [
   '/instances/',
   '/instances/instance',
   '/instances/users',
+  '/advanced-search',
   '/search'
 ] as const;
 

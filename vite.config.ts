@@ -17,6 +17,7 @@ export default defineConfig({
         instances: resolve(__dirname, 'instances/index.html'),
         instance: resolve(__dirname, 'instances/instance.html'),
         iUSers: resolve(__dirname, 'instances/users.html'),
+        advancedSearch: resolve(__dirname, 'advanced-search.html'),
         search: resolve(__dirname, 'search.html')
       },
     },

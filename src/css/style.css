@@ -86,10 +86,12 @@ body {
                     LOADING ANIMATION
   ========================================================*/
 #loading,
-#loading-main {
+#loading-main,
+#searching {
     margin: 2%;
     display: flex;
     justify-content: center;
+    gap: 10px;
     align-items: center;
 }
 .loader {
@@ -305,11 +307,16 @@ header {
     margin-top: auto;
     flex-shrink: 0;
     padding: 0.85rem 1rem;
-    background-color: var(--userItem-background);
+    border: 3px solid var(--accent);
     color: var(--userItem-text);
     border-radius: 8px;
     font-weight: 600;
     text-align: center;
+}
+
+.user-profile:hover {
+    background-color: var(--accent);
+    color: #000;
 }
 /* ========================================================
    STATE TRIGGERS (CHECKBOX HACK)
