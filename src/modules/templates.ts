@@ -27,7 +27,7 @@ type LinkWithIcon = {
     materialIcon?: string;
 }
 
-const headerItems: LinkWithIcon[] = [
+const navItems: LinkWithIcon[] = [
     { linkText: "Home", href: "/", external: false, materialIcon: "home" },
     { linkText: "Users", href: "/users/", external: false, materialIcon: "group" },
     { linkText: "Instances", href: "/instances/", external: false, materialIcon: "dns" },
@@ -37,21 +37,53 @@ const headerItems: LinkWithIcon[] = [
 
 export function loadHeader(activeNavLink: string, showSearch: boolean) {
     const header = document.querySelector("header") as HTMLElement;
-    //Logo
     const logo = makeElement("div", "logo", null, null);
-    const logoImage = document.createElement("img") as HTMLImageElement;
-    logoImage.src = "https://raw.githubusercontent.com/CanvasStats/main/cb3fac2a0a08dcd846a53e0946a85ece3e2807bf/public/icon.svg"
-    logo.appendChild(logoImage);
+    const logoImage = document.createElement("img");
+    logoImage.src = "https://raw.githubusercontent.com/CanvasStats/main/cb3fac2a0a08dcd846a53e0946a85ece3e2807bf/public/icon.svg";
+    logoImage.alt = "Canvas Stats Logo"; // Recommended for accessibility
     const logoText = makeElement("h1", null, null, "Canvas Stats");
-    logo.onclick = function () { navigateTo("/") }
-    logo.appendChild(logoText);
-    header.appendChild(logo);
-    //Links
-    headerItems.forEach((link: LinkWithIcon) => {
+    logo.addEventListener("click", () => navigateTo("/"));
+    logo.append(logoImage, logoText);
+
+    const menuToggleLabel = makeElement("label", null, "nav-toggle-btn", null) as HTMLLabelElement;
+    menuToggleLabel.htmlFor = "menu-toggle";
+    menuToggleLabel.ariaLabel = "Toggle menu";
+    for (let i = 0; i < 3; i++) {
+        menuToggleLabel.appendChild(document.createElement("span"));
+    }
+    const menuToggleCheckbox = makeElement("input", "menu-toggle", "menu-toggle-input", null) as HTMLInputElement;
+    menuToggleCheckbox.type = "checkbox";
+
+    header.append(logo, menuToggleLabel);
+    document.body.prepend(menuToggleCheckbox);
+
+    const nav = makeElement("nav", null, "side-nav", null);
+    const navHeader = makeElement("div", null, "nav-header", null);
+    const closeButton = makeElement("label", null, "close-btn", "×") as HTMLLabelElement;
+    closeButton.htmlFor = "menu-toggle";
+    closeButton.ariaLabel = "Close menu";
+    navHeader.appendChild(closeButton);
+
+    const linksUl = navItems.reduce((acc: HTMLElement, link: LinkWithIcon) => {
+        const li = makeElement("li", null, null, null);
         const linkElement = createLinkWithIcon(link);
-        if (activeNavLink === link.linkText) linkElement.setAttribute("aria-current", "page");
-        header.appendChild(linkElement);
-    });
+
+        if (activeNavLink === link.linkText) {
+            linkElement.setAttribute("aria-current", "page");
+        }
+
+        li.appendChild(linkElement);
+        acc.appendChild(li);
+        return acc;
+    }, makeElement("ul", null, "nav-links", null));
+    const userProfileLink = makeElement("div", null, "user-profile", null);
+    const userLink = makeElement("span", null, null, "No Profile Claimed");
+    userProfileLink.appendChild(userLink);
+    nav.append(navHeader, linksUl, userProfileLink);
+    const navBackdrop = makeElement("label", null, "nav-backdrop", null) as HTMLLabelElement;
+    navBackdrop.htmlFor = "menu-toggle";
+    document.body.append(navBackdrop, nav);
+
     //Search
     if (showSearch) {
         const search = document.getElementById("search") as HTMLFormElement;

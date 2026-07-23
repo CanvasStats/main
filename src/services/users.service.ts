@@ -110,6 +110,17 @@ async function getUsersPixels(username: string, year: number) {
     return null;
 }
 
+async function getUndoForUser(username: string, year: number): Promise<number> {
+    const userPixels = await getUsersPixels(username, year);
+    if (userPixels) {
+        return userPixels.reduce((acc: number, pixel: Pixel) => {
+                if (pixel["isUndo"]) acc += 1;
+                return acc;
+            }, 0);
+    }
+    return 0;
+}
+
 export async function getUserStats(username: string, year: number) {
     const yearCounts = getYearCounts(year);
     const user = await getUserObject(username, year);
@@ -171,8 +182,16 @@ export async function getUserStats(username: string, year: number) {
                     title: "Pixels Placed Per Hour"
                 },
                 {
-                    type: "button-group",
+                    type: "standard",
                     layout: "right",
+                    icon: "undo",
+                    content: [
+                        `You clicked the undo button ${await getUndoForUser(username, year)} times`
+                    ]
+                },
+                {
+                    type: "button-group",
+                    layout: "left",
                     title: `View your pixels placed in ${year}`,
                     icon: "dashboard_customize",
                     buttons: [
@@ -312,21 +331,17 @@ export async function getNumColorsUsedForUsername(year: number, username: string
 export async function getPixelsPerHourForUser(year: number, username: string): Promise<DataRow[]> {
   const pixelsForYear = await getPixelsForDraw(new DrawParams(year, null, null, null, null, null));
   if (!pixelsForYear || pixelsForYear.length === 0) return [];
-
-  // 1. Filter for the specific user first
   const pixelsForUser = pixelsForYear.filter(
     pixel => pixel.username.toLowerCase() === username.toLowerCase()
   );
   if (pixelsForUser.length === 0) return [];
 
-  // 2. Sort the user's pixels chronologically, sanitizing to UTC safely
   const sortedUserPixels = [...pixelsForUser].sort((a, b) => {
     const timeA = new Date(a.timePlaced.replace(" ", "T") + "Z").getTime();
     const timeB = new Date(b.timePlaced.replace(" ", "T") + "Z").getTime();
     return timeA - timeB;
   });
 
-  // 3. Find event boundaries safely using a loop to prevent "too many function arguments" RangeError
   let eventStartMs = Infinity;
   let eventEndMs = -Infinity;
 
@@ -336,14 +351,12 @@ export async function getPixelsPerHourForUser(year: number, username: string): P
     if (ts > eventEndMs) eventEndMs = ts;
   }
 
-  // Set the start boundary to the top of the event's first hour
   let currentHour = new Date(eventStartMs);
   currentHour.setUTCMinutes(0, 0, 0);
 
   const lastPixelDate = new Date(eventEndMs);
   const result: DataRow[] = [];
 
-  // 4. Loop through hourly blocks using matching UTC comparisons
   while (currentHour <= lastPixelDate) {
     const nextHour = new Date(currentHour);
     nextHour.setUTCHours(currentHour.getUTCHours() + 1);
