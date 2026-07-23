@@ -1,3 +1,4 @@
+import { getClaimedUser } from "../services/db.service";
 import { navigateTo } from "./navigate";
 import { makeElement } from "./utils";
 
@@ -35,7 +36,7 @@ const navItems: LinkWithIcon[] = [
     { linkText: "Go To Canvas", href: "https://canvas.fediverse.events", external: true, materialIcon: "open_in_new" }
 ]
 
-export function loadHeader(activeNavLink: string, showSearch: boolean) {
+export async function loadHeader(activeNavLink: string, showSearch: boolean) {
     const header = document.querySelector("header") as HTMLElement;
     const logo = makeElement("div", "logo", null, null);
     const logoImage = document.createElement("img");
@@ -76,9 +77,18 @@ export function loadHeader(activeNavLink: string, showSearch: boolean) {
         acc.appendChild(li);
         return acc;
     }, makeElement("ul", null, "nav-links", null));
+    const claimedResponse = await getClaimedUser();
     const userProfileLink = makeElement("div", null, "user-profile", null);
-    const userLink = makeElement("span", null, null, "No Profile Claimed");
-    userProfileLink.appendChild(userLink);
+    if (claimedResponse) {
+        const userLink = makeElement("span", null, null, claimedResponse.split("@")[0]);
+        userProfileLink.classList.add("clickable");
+        userProfileLink.addEventListener("click", () => navigateTo("/users/user", {params: {name: claimedResponse}}));
+        userProfileLink.appendChild(userLink);
+    } else {
+        const userLink = makeElement("span", null, null, "No Profile Claimed");
+        userProfileLink.appendChild(userLink);
+    }
+
     nav.append(navHeader, linksUl, userProfileLink);
     const navBackdrop = makeElement("label", null, "nav-backdrop", null) as HTMLLabelElement;
     navBackdrop.htmlFor = "menu-toggle";
