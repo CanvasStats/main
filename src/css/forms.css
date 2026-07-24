@@ -147,3 +147,10 @@ table li {
 .column {
     flex-direction: column;
 }
+
+.search-form {
+    border: 3px solid var(--accent);
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px 0;
+}

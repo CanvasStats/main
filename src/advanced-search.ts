@@ -1,6 +1,7 @@
 import { initializeApp } from "./main";
-import { ContentPair, JsonBlock, Pixel } from "./models";
+import { ContentPair, JsonBlock, Pixel, type DataRow } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
+import { createLineGraph } from "./modules/d3Graphics";
 import { clearMessages, createButton, createInput, createMessage, makeElement } from "./modules/utils";
 import { getPixelDataForYear, getYears } from "./services/canvas.service";
 
@@ -48,7 +49,7 @@ async function searchArea(formData: FormData) {
     const pixelsForYear: Pixel[] | null = await getPixelDataForYear(+year);
     let filteredPixels: Pixel[] | null = null;
     if (searchAreaSelection && searchAreaSelection === "area" && topX && topY && bottomX && bottomY && year) {
-        resultsTitle = `Results for (${topX}, ${topY}) to (${bottomX}, ${bottomY})`;
+        resultsTitle = `(${topX}, ${topY}) to (${bottomX}, ${bottomY})`;
         if (pixelsForYear) {
             const bounds: BoundingBox = { topLeftX: +topX, topLeftY: +topY, bottomRightX: +bottomX, bottomRightY: +bottomY }
             filteredPixels = pixelsForYear.filter((pixel) => {
@@ -59,7 +60,7 @@ async function searchArea(formData: FormData) {
             updateResults(filteredPixels, resultsTitle, +year);
         }
     } else if (searchAreaSelection && searchAreaSelection === "single-pixel" && topX && topY && year) {
-        resultsTitle = `Results for (${topX}, ${topY})`;
+        resultsTitle = `(${topX}, ${topY})`;
         if (pixelsForYear) {
             filteredPixels = pixelsForYear.filter(pixel => pixel["xCoordinate"] === +topX && pixel["yCoordinate"] === +topY);
             updateResults(filteredPixels, resultsTitle, +year);
@@ -67,8 +68,39 @@ async function searchArea(formData: FormData) {
     }
 }
 
+async function getPixelsPerHourForSearch(searchPixels: Pixel[]) {
+    if (searchPixels) {
+        const firstPixel = searchPixels[0];
+        const lastPixel = searchPixels[searchPixels.length - 1];
+        const sortedPixels = [...searchPixels].sort(
+            (a, b) => new Date(a.timePlaced).getTime() - new Date(b.timePlaced).getTime()
+        );
+        const firstPixelDate = new Date(firstPixel.timePlaced);
+        const lastPixelDate = new Date(lastPixel.timePlaced);
+        let currentHour = new Date(firstPixelDate);
+        currentHour.setMinutes(0, 0, 0);
+
+        const result: DataRow[] = [];
+        while (currentHour <= lastPixelDate) {
+            const nextHour = new Date(currentHour);
+            nextHour.setHours(currentHour.getHours() + 1);
+            const pixelsInHour = sortedPixels.filter((p) => {
+                const pDate = new Date(p.timePlaced);
+                return pDate >= currentHour && pDate < nextHour;
+            });
+
+            result.push({
+                timestamp: new Date(currentHour.toISOString()),
+                value: pixelsInHour.length,
+            });
+            currentHour = nextHour;
+        }
+        return result;
+    }
+}
+
 async function updateResults(filteredPixels: Pixel[], title: string, year: number) {
-    const resultsH2 = makeElement("h2", null, null, title);
+    const resultsH2 = makeElement("h2", null, null, `Results for ${title}`);
     const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
     if (filteredPixels) {
         const counts: Record<string, number> = filteredPixels.reduce((acc, pixel) => {
@@ -105,6 +137,20 @@ async function updateResults(filteredPixels: Pixel[], title: string, year: numbe
         });
         resultsSection.append(resultsH2, statsContainer);
     }
+    const pixelsPerHour = await getPixelsPerHourForSearch(filteredPixels);
+    if (pixelsPerHour) {
+        const graphStat = makeElement("article", null, "left", null);
+        const statSection = makeElement("section", null, null, null);
+        const statHeader = makeElement("h3", null, "center", `Pixels Placed Per Hour ${title.includes("to") ? "within" : "on"} ${title}`);
+        statSection.appendChild(statHeader);
+        const graphContainer = makeElement("div", "line-graph-container", null, null);
+        graphContainer.setAttribute("style", "width: 100%; max-width: 800px; margin: auto;")
+        statSection.appendChild(graphContainer);
+        graphStat.appendChild(statSection);
+        statsContainer.appendChild(graphStat);
+        if (pixelsPerHour) createLineGraph(pixelsPerHour, graphContainer);
+    }
+
     const btnRow = makeElement("div", null, "button-row", null);
     const modifySearch = createButton("purple", "Modify Search", "edit");
     modifySearch.addEventListener("click", () => {
@@ -124,7 +170,7 @@ async function updateResults(filteredPixels: Pixel[], title: string, year: numbe
     searching.classList.add("hide");
 }
 
-const searchAreaForm = makeElement("form", "search-area-form", null, null) as HTMLFormElement;
+const searchAreaForm = makeElement("form", "search-area-form", "search-form", null) as HTMLFormElement;
 const searchAreaH2 = makeElement("h2", null, null, "Search in area");
 
 const yearRow = makeElement("div", null, "form-row", null);
@@ -178,9 +224,7 @@ searchAreaForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(searchAreaForm);
     await searchArea(formData);
-
 });
-
 
 if (loading) loading.remove();
 main.classList.remove("hide");

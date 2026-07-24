@@ -337,5 +337,6 @@ export interface Achievement {
     name: string,
     description: string,
     icon: string,
-    years: number[]
+    years: number[],
+    totalUsers?: number
 }
