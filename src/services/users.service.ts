@@ -1,4 +1,4 @@
-import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks, type DataRow, type Achievement, Pixel } from "../models";
+import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks, type DataRow, type Achievement, Pixel, type EventPixelTotal } from "../models";
 import { createMessage, fetchHTML, convertColor } from "../modules/utils";
 import { getYearCounts, getPixelsForDraw, countUsersFinalPixels, getPixelDataForYear } from "./canvas.service";
 
@@ -114,11 +114,46 @@ async function getUndoForUser(username: string, year: number): Promise<number> {
     const userPixels = await getUsersPixels(username, year);
     if (userPixels) {
         return userPixels.reduce((acc: number, pixel: Pixel) => {
-                if (pixel["isUndo"]) acc += 1;
-                return acc;
-            }, 0);
+            if (pixel["isUndo"]) acc += 1;
+            return acc;
+        }, 0);
     }
     return 0;
+}
+
+const pixelPlacementYears: Record<number, EventPixelTotal> = {
+    2023: {
+        eventLength: 72,
+        downtimeLength: 0,
+        totalPossiblePixels: 8640
+    },
+    2024: {
+        eventLength: 96,
+        downtimeLength: 649,
+        totalPossiblePixels: 10222,
+    },
+    2025: {
+        eventLength: 48,
+        downtimeLength: 7,
+        totalPossiblePixels: 5746
+    },
+    2026: {
+        eventLength: 48,
+        downtimeLength: 0,
+        totalPossiblePixels: 5760
+    }
+}
+
+function CalculateTimeWasted(
+    pixelCount: number,
+    year: number
+): string {
+    const yearData = pixelPlacementYears[year];
+    const unusedPixels = yearData.totalPossiblePixels - pixelCount;
+    const totalIdleMinutes = unusedPixels * 0.5;
+    const hours = Math.floor(totalIdleMinutes / 60);
+    const minutes = Math.floor(totalIdleMinutes % 60);
+    return `You spent ${hours} hours ${minutes} minutes idle when you could have been placing pixels. (The event was ${yearData["eventLength"]} hours long with ${yearData["downtimeLength"]} minutes of downtime, making the maximum possible pixels ${yearData["totalPossiblePixels"]})`;
 }
 
 export async function getUserStats(username: string, year: number) {
@@ -190,8 +225,16 @@ export async function getUserStats(username: string, year: number) {
                     ]
                 },
                 {
-                    type: "button-group",
+                    type: "standard",
                     layout: "left",
+                    icon: "hourglass_pause",
+                    content: [
+                        CalculateTimeWasted(user["pixelCount"], year)
+                    ]
+                },
+                {
+                    type: "button-group",
+                    layout: "right",
                     title: `View your pixels placed in ${year}`,
                     icon: "dashboard_customize",
                     buttons: [
@@ -329,52 +372,52 @@ export async function getNumColorsUsedForUsername(year: number, username: string
 }
 
 export async function getPixelsPerHourForUser(year: number, username: string): Promise<DataRow[]> {
-  const pixelsForYear = await getPixelsForDraw(new DrawParams(year, null, null, null, null, null));
-  if (!pixelsForYear || pixelsForYear.length === 0) return [];
-  const pixelsForUser = pixelsForYear.filter(
-    pixel => pixel.username.toLowerCase() === username.toLowerCase()
-  );
-  if (pixelsForUser.length === 0) return [];
+    const pixelsForYear = await getPixelsForDraw(new DrawParams(year, null, null, null, null, null));
+    if (!pixelsForYear || pixelsForYear.length === 0) return [];
+    const pixelsForUser = pixelsForYear.filter(
+        pixel => pixel.username.toLowerCase() === username.toLowerCase()
+    );
+    if (pixelsForUser.length === 0) return [];
 
-  const sortedUserPixels = [...pixelsForUser].sort((a, b) => {
-    const timeA = new Date(a.timePlaced.replace(" ", "T") + "Z").getTime();
-    const timeB = new Date(b.timePlaced.replace(" ", "T") + "Z").getTime();
-    return timeA - timeB;
-  });
-
-  let eventStartMs = Infinity;
-  let eventEndMs = -Infinity;
-
-  for (let i = 0; i < pixelsForYear.length; i++) {
-    const ts = new Date(pixelsForYear[i].timePlaced.replace(" ", "T") + "Z").getTime();
-    if (ts < eventStartMs) eventStartMs = ts;
-    if (ts > eventEndMs) eventEndMs = ts;
-  }
-
-  let currentHour = new Date(eventStartMs);
-  currentHour.setUTCMinutes(0, 0, 0);
-
-  const lastPixelDate = new Date(eventEndMs);
-  const result: DataRow[] = [];
-
-  while (currentHour <= lastPixelDate) {
-    const nextHour = new Date(currentHour);
-    nextHour.setUTCHours(currentHour.getUTCHours() + 1);
-
-    const pixelsInHour = sortedUserPixels.filter((p) => {
-      const pDateMs = new Date(p.timePlaced.replace(" ", "T") + "Z").getTime();
-      return pDateMs >= currentHour.getTime() && pDateMs < nextHour.getTime();
+    const sortedUserPixels = [...pixelsForUser].sort((a, b) => {
+        const timeA = new Date(a.timePlaced.replace(" ", "T") + "Z").getTime();
+        const timeB = new Date(b.timePlaced.replace(" ", "T") + "Z").getTime();
+        return timeA - timeB;
     });
 
-    result.push({
-      timestamp: new Date(currentHour.getTime()), // Safe UTC wrapper for charting libraries
-      value: pixelsInHour.length,
-    });
+    let eventStartMs = Infinity;
+    let eventEndMs = -Infinity;
 
-    currentHour = nextHour;
-  }
+    for (let i = 0; i < pixelsForYear.length; i++) {
+        const ts = new Date(pixelsForYear[i].timePlaced.replace(" ", "T") + "Z").getTime();
+        if (ts < eventStartMs) eventStartMs = ts;
+        if (ts > eventEndMs) eventEndMs = ts;
+    }
 
-  return result;
+    let currentHour = new Date(eventStartMs);
+    currentHour.setUTCMinutes(0, 0, 0);
+
+    const lastPixelDate = new Date(eventEndMs);
+    const result: DataRow[] = [];
+
+    while (currentHour <= lastPixelDate) {
+        const nextHour = new Date(currentHour);
+        nextHour.setUTCHours(currentHour.getUTCHours() + 1);
+
+        const pixelsInHour = sortedUserPixels.filter((p) => {
+            const pDateMs = new Date(p.timePlaced.replace(" ", "T") + "Z").getTime();
+            return pDateMs >= currentHour.getTime() && pDateMs < nextHour.getTime();
+        });
+
+        result.push({
+            timestamp: new Date(currentHour.getTime()),
+            value: pixelsInHour.length,
+        });
+
+        currentHour = nextHour;
+    }
+
+    return result;
 }
 
 export async function getYearsForUsername(username: string) {
@@ -468,8 +511,8 @@ export function checkSpeedAchievements(
 }
 
 export interface PixelBreak {
-  durationMs: number;
-  readable: string;
+    durationMs: number;
+    readable: string;
 }
 
 /**
@@ -477,41 +520,41 @@ export interface PixelBreak {
  * Returns an empty array if there are fewer than 2 pixels.
  */
 export function getLargestPixelBreaks(pixels: Pixel[]): PixelBreak[] {
-  if (pixels.length < 2) return [];
+    if (pixels.length < 2) return [];
 
-  const timestamps = pixels
-    .map(p => new Date(p.timePlaced.replace(" ", "T") + "Z").getTime())
-    .sort((a, b) => a - b);
+    const timestamps = pixels
+        .map(p => new Date(p.timePlaced.replace(" ", "T") + "Z").getTime())
+        .sort((a, b) => a - b);
 
-  const breaks: PixelBreak[] = [];
+    const breaks: PixelBreak[] = [];
 
-  for (let i = 0; i < timestamps.length - 1; i++) {
-    const diffMs = timestamps[i + 1] - timestamps[i];
-    if (diffMs > 4 * 60 * 60 * 1000) {
-  }
-    breaks.push({
-      durationMs: diffMs,
-      readable: formatDuration(diffMs)
-    });
-  }
+    for (let i = 0; i < timestamps.length - 1; i++) {
+        const diffMs = timestamps[i + 1] - timestamps[i];
+        if (diffMs > 4 * 60 * 60 * 1000) {
+        }
+        breaks.push({
+            durationMs: diffMs,
+            readable: formatDuration(diffMs)
+        });
+    }
 
-  return breaks
-    .sort((a, b) => b.durationMs - a.durationMs)
-    .slice(0, 4);
+    return breaks
+        .sort((a, b) => b.durationMs - a.durationMs)
+        .slice(0, 4);
 }
 
 function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
 
-  if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
-  }
-  if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
-  }
-  return `${seconds}s`;
+    if (hours > 0) {
+        return `${hours}h ${minutes % 60}m`;
+    }
+    if (minutes > 0) {
+        return `${minutes}m ${seconds % 60}s`;
+    }
+    return `${seconds}s`;
 }
 
 function addOrUpdateAchievement(
@@ -591,24 +634,24 @@ export function checkCanvasBoundaries(
 }
 
 function hasAtLeast100Duplicates(userPixels: Pixel[]): boolean {
-  const counts = new Map<string, number>();
-  let uniqueDuplicatesCount = 0;
+    const counts = new Map<string, number>();
+    let uniqueDuplicatesCount = 0;
 
-  for (const pixel of userPixels) {
-    const key = `${pixel.xCoordinate},${pixel.yCoordinate}`;
-    const currentCount = (counts.get(key) || 0) + 1;
-    counts.set(key, currentCount);
+    for (const pixel of userPixels) {
+        const key = `${pixel.xCoordinate},${pixel.yCoordinate}`;
+        const currentCount = (counts.get(key) || 0) + 1;
+        counts.set(key, currentCount);
 
-    if (currentCount === 2) {
-      uniqueDuplicatesCount++;
+        if (currentCount === 2) {
+            uniqueDuplicatesCount++;
 
-      if (uniqueDuplicatesCount >= 100) {
-        return true;
-      }
+            if (uniqueDuplicatesCount >= 100) {
+                return true;
+            }
+        }
     }
-  }
 
-  return false;
+    return false;
 }
 
 export async function checkAchievementsForUser(
@@ -652,11 +695,11 @@ export async function checkAchievementsForUser(
             addOrUpdateAchievement(fullAchievementArray, "Monocolor", "You used only 1 color", "colors", year);
         }
 
-        const mostContestedPixels: Record<number, {x: number, y: number}> = {
-            2023: { x: 175, y: 171},
+        const mostContestedPixels: Record<number, { x: number, y: number }> = {
+            2023: { x: 175, y: 171 },
             2024: { x: 10, y: 262 },
             2025: { x: 304, y: 40 },
-            2026: { x: 40, y: 170}
+            2026: { x: 40, y: 170 }
         }
         const userPixels = await getUsersPixels(username, year);
         if (userPixels && userPixels.length > 0) {
@@ -696,12 +739,12 @@ export async function checkAchievementsForUser(
                 addOrUpdateAchievement(fullAchievementArray, "Cover-up", "Less than 10% of your pixels made it to the end of the event", "shades_closed", year);
             }
 
-            const specialNumbers: {specialNumber: number, name: string, icon: string}[] = [
-                {specialNumber: 13, name: "Unlucky", icon: "thumb_down"},
-                {specialNumber: 42, name: "Answer to the Ultimate Question of Life, the Universe, and Everything", icon: "planet"},
-                {specialNumber: 69, name: "Nice", icon: "thumb_up"},
-                {specialNumber: 420, name: "Alright Alright Alright", icon: "thumbs_up_double"},
-                {specialNumber: 666, name: "Diablo", icon: "skull"},];
+            const specialNumbers: { specialNumber: number, name: string, icon: string }[] = [
+                { specialNumber: 13, name: "Unlucky", icon: "thumb_down" },
+                { specialNumber: 42, name: "Answer to the Ultimate Question of Life, the Universe, and Everything", icon: "planet" },
+                { specialNumber: 69, name: "Nice", icon: "thumb_up" },
+                { specialNumber: 420, name: "Alright Alright Alright", icon: "thumbs_up_double" },
+                { specialNumber: 666, name: "Diablo", icon: "skull" },];
             for (const num of specialNumbers) {
                 const filteredPixelsCoord = userPixels.filter(pixel => pixel.xCoordinate === num.specialNumber || pixel.yCoordinate === num.specialNumber);
                 if (userStatsForYear["pixelCount"] === num.specialNumber) {

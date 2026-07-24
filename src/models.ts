@@ -340,3 +340,9 @@ export interface Achievement {
     years: number[],
     totalUsers?: number
 }
+
+export interface EventPixelTotal {
+    eventLength: number,
+    downtimeLength: number,
+    totalPossiblePixels: number
+}
