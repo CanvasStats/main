@@ -10,7 +10,8 @@ export const ALL_APP_PATHS = [
   '/instances/instance',
   '/instances/users',
   '/advanced-search',
-  '/search'
+  '/search',
+  '/achievements'
 ] as const;
 
 export type AppPath = typeof ALL_APP_PATHS[number];

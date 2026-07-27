@@ -4,9 +4,10 @@ import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createColorTreemap, createLineGraph } from "./modules/d3Graphics";
 import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createMessage, makeElement, storeMessage } from "./modules/utils";
+import { checkAchievementsForUser } from "./services/achievements.service";
 import { getYears } from "./services/canvas.service";
 import { getClaimedUser, setClaimedUser, checkForExistingAchievements, getAllAchievementsFromDB, addAchievementsToDB, clearAchievementsFromDB } from "./services/db.service";
-import { checkAchievementsForUser, GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
+import { GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
 
 const main = document.querySelector('main') as HTMLElement;
 const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;

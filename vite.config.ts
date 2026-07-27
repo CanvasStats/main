@@ -18,7 +18,8 @@ export default defineConfig({
         instance: resolve(__dirname, 'instances/instance.html'),
         iUSers: resolve(__dirname, 'instances/users.html'),
         advancedSearch: resolve(__dirname, 'advanced-search.html'),
-        search: resolve(__dirname, 'search.html')
+        search: resolve(__dirname, 'search.html'),
+        achievements: resolve(__dirname, 'achievements.html')
       },
     },
   },

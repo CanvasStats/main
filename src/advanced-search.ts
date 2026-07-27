@@ -2,6 +2,7 @@ import { initializeApp } from "./main";
 import { ContentPair, JsonBlock, Pixel, type DataRow } from "./models";
 import { getBlockStructure, renderTree } from "./modules/createNodeTree";
 import { createLineGraph } from "./modules/d3Graphics";
+import { navigateTo } from "./modules/navigate";
 import { clearMessages, createButton, createInput, createMessage, makeElement } from "./modules/utils";
 import { getPixelDataForYear, getYears } from "./services/canvas.service";
 
@@ -170,6 +171,50 @@ async function updateResults(filteredPixels: Pixel[], title: string, year: numbe
     searching.classList.add("hide");
 }
 
+const searchUsersForm = makeElement("form", "search-users-form", "search-form", null) as HTMLFormElement;
+const searchUsersInput = document.createElement("input") as HTMLInputElement;
+searchUsersInput.type = "text";
+searchUsersInput.name = "username";
+searchUsersInput.placeholder = "Enter the username to search"
+const suContainer = makeElement("div", null, "search-bar-container", null);
+searchUsersInput.classList.add("search-bar");
+suContainer.append(searchUsersInput);
+const suBtn = createButton("blue", "Search Users", "search") as HTMLButtonElement;
+suBtn.type = "submit";
+searchUsersForm.append(suContainer, suBtn);
+searchUsersForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(searchUsersForm);
+    const usernameInput = formData.get("username");
+    if (usernameInput && usernameInput.toString().trim() !== "" ) {
+        navigateTo("/users/", {params: {username: usernameInput.toString().trim()}});
+    } else {
+        createMessage("Please enter a username", "main-message", "error");
+    }
+});
+
+const searchInstancesForm = makeElement("form", "search-instances-form", "search-form", null) as HTMLFormElement;
+const siContainer = makeElement("div", null, "search-bar-container", null);
+const searchInstancesInput = document.createElement("input") as HTMLInputElement;
+searchInstancesInput.type = "text";
+searchInstancesInput.name = "instance";
+searchInstancesInput.classList.add("search-bar");
+siContainer.appendChild(searchInstancesInput);
+const siBtn = createButton("blue", "Search Users", "search") as HTMLButtonElement;
+siBtn.type = "submit";
+searchInstancesInput.placeholder = "Enter the name of the instance to search"
+searchInstancesForm.append(siContainer, siBtn);
+searchInstancesForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(searchInstancesForm);
+    const instanceInput = formData.get("instance");
+    if (instanceInput && instanceInput.toString().trim() !== "" ) {
+        navigateTo("/instances/", {params: {name: instanceInput.toString().trim()}});
+    } else {
+        createMessage("Please enter a username", "main-message", "error");
+    }
+});
+
 const searchAreaForm = makeElement("form", "search-area-form", "search-form", null) as HTMLFormElement;
 const searchAreaH2 = makeElement("h2", null, null, "Search in area");
 
@@ -218,7 +263,7 @@ searchAreaForm.addEventListener("change", (e) => {
         bottomCoords.classList.remove("hide");
     }
 });
-formsSection.appendChild(searchAreaForm);
+formsSection.append(searchUsersForm, searchInstancesForm, searchAreaForm);
 
 searchAreaForm.addEventListener("submit", async (e) => {
     e.preventDefault();
