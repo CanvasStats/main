@@ -144,6 +144,14 @@ body {
     }
 }
 
+a, legend a {
+    cursor: pointer;
+    color: var(--main-link);
+}
+a:hover, legend a:hover {
+    text-decoration: underline;
+}
+
 /* ========================================================
    HEADER & LOGO
    ======================================================== */
@@ -684,14 +692,25 @@ main a {
     justify-content: space-around;
     align-items: center;
     flex-wrap: wrap;
+    margin: 5px;
 }
 
 #achievements-flexbox div {
     border-radius: 5px;
     padding: 5px;
-    margin: 5px;
     background-color: var(--color-background);
     color: var(--text-hover);
+}
+
+.achievement-card {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+    border: 3px solid var(--text-root);
+}
+
+.not-yet {
+    opacity: 50%;
 }
 
 .dark-purple.ach {

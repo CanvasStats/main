@@ -82,6 +82,7 @@ export async function setClaimedUser(username: string): Promise<void> {
  * Retrieves the currently claimed user from IndexedDB, automatically healing from LocalStorage if evicted.
  */
 export async function getClaimedUser(): Promise<string | null> {
+  console.log("getting claimed user");
   try {
     const db = await openDB();
     

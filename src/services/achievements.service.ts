@@ -238,8 +238,6 @@ export async function checkAchievementsForUser(
         years: [...ach.years]
     }));
 
-    //VITE_SECRET_USER
-    //Ategon@programming.dev
     const secret_user = import.meta.env.VITE_FIREBASE_API_KEY;
     if (username === secret_user) {
         addOrUpdateAchievement(fullAchievementArray, "You asked for this", "Happy Counting!", "exposure_plus_1", 2026);
@@ -327,7 +325,8 @@ export async function checkAchievementsForUser(
                 const filteredPixelsCoord = userPixels.filter(pixel => pixel.xCoordinate === num.specialNumber || pixel.yCoordinate === num.specialNumber);
                 if (userStatsForYear["pixelCount"] === num.specialNumber) {
                     addOrUpdateAchievement(fullAchievementArray, `${num.name} Count`, `Place exactly ${num.specialNumber} pixels`, num.icon, year);
-                } else if (filteredPixelsCoord.length != 0) {
+                }
+                if (filteredPixelsCoord.length != 0) {
                     addOrUpdateAchievement(fullAchievementArray, `${num.name} Coordinate`, `Place a pixel on a coordinate containing ${num.specialNumber}`, num.icon, year);
                 }
             }

@@ -152,7 +152,12 @@ async function loadAchievements() {
         createMessage(`You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
     }
     achievementSection.innerHTML = "";
-    const legend = makeElement("legend", null, null, "Achievements");
+    const legend = makeElement("legend", null, null, null);
+    legend.appendChild(makeElement("span", null, null, "Achievements - "));
+    const viewAll = document.createElement("a") as HTMLAnchorElement;
+    viewAll.textContent = "View All";
+    viewAll.addEventListener("click", () => navigateTo("/achievements"));
+    legend.appendChild(viewAll);
     achievementSection.appendChild(legend);
     const achievementsFlexbox = fullAchievementArray.reduce((acc: HTMLElement, achievement: Achievement) => {
         const achievementDiv = makeElement("div", null, "dark-purple ach", null);
@@ -167,7 +172,7 @@ async function loadAchievements() {
         achievementDiv.appendChild(tooltipCard);
         acc.appendChild(achievementDiv);
         return acc;
-    }, makeElement("section", "achievements-flexbox", null, null));
+    }, makeElement("div", "achievements-flexbox", null, null));
     achievementSection.append(achievementsFlexbox);
 }
 
