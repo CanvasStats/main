@@ -6,7 +6,7 @@ import { navigateTo } from "./modules/navigate";
 import { addLoadingElement, clearMessages, createMessage, makeElement, storeMessage } from "./modules/utils";
 import { checkAchievementsForUser } from "./services/achievements.service";
 import { getYears } from "./services/canvas.service";
-import { getClaimedUser, setClaimedUser, checkForExistingAchievements, getAllAchievementsFromDB, addAchievementsToDB, clearAchievementsFromDB } from "./services/db.service";
+import { getClaimedUser, setClaimedUser, checkForExistingAchievements, getAllAchievementsFromDB, addAchievementsToDB, clearAchievementsFromDB, deleteAchievementFromDB } from "./services/db.service";
 import { GetColorCountForUsername, getPixelsPerHourForUser, getUserStats, getYearsForUsername } from "./services/users.service";
 
 const main = document.querySelector('main') as HTMLElement;
@@ -140,6 +140,7 @@ async function loadAchievements() {
     if (hasExistingAchievements === "good") {
         fullAchievementArray = await getAllAchievementsFromDB();
     } else if (hasExistingAchievements === "update") {
+        deleteAchievementFromDB("Perfect Attendance");
         const tempAchArray = await getAllAchievementsFromDB();
         fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, tempAchArray);
         await addAchievementsToDB(fullAchievementArray);

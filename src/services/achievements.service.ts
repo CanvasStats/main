@@ -1,6 +1,8 @@
 import type { Pixel, Achievement } from "../models";
 import { fetchHTML } from "../modules/utils";
 import { getNumColorsUsedForUsername, getUserObject, getUsersPixels } from "./users.service";
+import { getYears } from "./canvas.service";
+import { getYear } from "../main";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
@@ -335,6 +337,12 @@ export async function checkAchievementsForUser(
                 addOrUpdateAchievement(fullAchievementArray, "You know there is an undo button, right?", "Cover 100 of your own pixels", "question_mark", year);
             }
         }
+    }
+
+    const participation = fullAchievementArray.find(achievement => achievement.name = "Participation Trophy");
+
+    if (participation?.years.length === getYears(false).length) {
+        addOrUpdateAchievement(fullAchievementArray, "Perfect Attendance", "Participated in every Canvas event", "award_star", getYear());
     }
 
     return fullAchievementArray;

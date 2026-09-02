@@ -1,7 +1,7 @@
 import type { Achievement } from "../models";
 
 const DB_NAME = 'pwa_stats_db';
-const DB_VERSION = 13;
+const DB_VERSION = 14;
 const SETTINGS_STORE = 'settings';
 const ACHIEVEMENTS_STORE = 'achievements';
 const CLAIMED_KEY = 'claimed_user';
@@ -225,5 +225,25 @@ export async function clearAchievementsFromDB(): Promise<void> {
     });
   } catch (error) {
     console.error("Failed to execute clearance operation on local store:", error);
+  }
+}
+
+/**
+ * Deletes a single achievement from the database by its ID (achievement name).
+ */
+export async function deleteAchievementFromDB(id: string): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(ACHIEVEMENTS_STORE, 'readwrite');
+      const store = tx.objectStore(ACHIEVEMENTS_STORE);
+      const request = store.delete(id);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error(`Failed to delete achievement with id "${id}":`, error);
+    throw error;
   }
 }
