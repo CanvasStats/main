@@ -140,7 +140,7 @@ async function loadAchievements() {
     if (hasExistingAchievements === "good") {
         fullAchievementArray = await getAllAchievementsFromDB();
     } else if (hasExistingAchievements === "update") {
-        deleteAchievementFromDB("Perfect Attendance");
+        await deleteAchievementFromDB("Perfect Attendance");
         const tempAchArray = await getAllAchievementsFromDB();
         fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, tempAchArray);
         await addAchievementsToDB(fullAchievementArray);

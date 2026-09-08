@@ -1,5 +1,4 @@
 import type { Pixel, Achievement } from "../models";
-import { fetchHTML } from "../modules/utils";
 import { getNumColorsUsedForUsername, getUserObject, getUsersPixels } from "./users.service";
 import { getYears } from "./canvas.service";
 import { getYear } from "../main";
@@ -310,7 +309,6 @@ export async function checkAchievementsForUser(
 
             const topPixels = userPixels.filter(pixel => pixel.isTop);
             const topCoverage = Number(((topPixels.length / userStatsForYear["pixelCount"]) * 100).toFixed(2));
-            console.log(`${year} = ${topCoverage}`)
             if (topCoverage > 90) {
                 addOrUpdateAchievement(fullAchievementArray, "Can't Cover me", "Over 90% of your pixels made it to the end of the event", "mountain_flag", year);
             } else if (topCoverage < 10) {
@@ -350,36 +348,12 @@ export async function checkAchievementsForUser(
 
 export async function getAllAchievements() {
     try {
-        const achievementsCSVData = await fetchHTML(`${baseURL}/achievements.csv`);
-        if (achievementsCSVData) {
-            //Split the csv file into lines
-            const lines = achievementsCSVData.trim().split('\n');
-            //Define the column headers
-            const header = lines[0].split(',').map(h => h.trim());
-            //id,name,description,icon,earned
-            const nameIndex = header.indexOf("name");
-            const descriptionIndex = header.indexOf("description");
-            const iconIndex = header.indexOf("icon");
-            const earnedIndex = header.indexOf("earned");
-
-            const achievements: Achievement[] = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(",");
-                if (values.length === header.length) {
-                    const achievement: Achievement = {
-                        name: values[nameIndex]?.trim() || "",
-                        description: values[descriptionIndex]?.trim() || "",
-                        icon: values[iconIndex]?.trim() || "",
-                        years: [],
-                        totalUsers: +values[earnedIndex]?.trim() || 0
-                    };
-                    achievements.push(achievement);
-                } else {
-                    console.warn(`Skipping row ${i + 1} due to incorrect number of columns.`);
-                }
-            }
-            return achievements;
+        const response = await fetch(`${baseURL}/achievementList.json`);
+        if (!response.ok) {
+            throw new Error(`Error loading achievements. Response status: ${response.status}`);
         }
+
+        return await response.json();
     } catch (error: any) {
         throw new Error("Error loading achievements list:", error)
     }

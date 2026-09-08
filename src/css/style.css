@@ -709,6 +709,12 @@ main a {
     border: 3px solid var(--text-root);
 }
 
+.achievement-card hr {
+    margin: 5px 0 !important;
+    display: block;
+    width: 100%;
+}
+
 .not-yet {
     opacity: 50%;
 }
