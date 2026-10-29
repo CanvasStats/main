@@ -1,7 +1,8 @@
-import type { Pixel, Achievement } from "../models";
 import { getNumColorsUsedForUsername, getUserObject, getUsersPixels } from "./users.service";
 import { getYears } from "./canvas.service";
-import { getYear } from "../main";
+import type { Pixel } from "../models/pixel.model";
+import type { Achievement } from "../models/achievement.model";
+import { state } from "../modules/state.module";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
@@ -337,10 +338,10 @@ export async function checkAchievementsForUser(
         }
     }
 
-    const participation = fullAchievementArray.find(achievement => achievement.name = "Participation Trophy");
+    const participation = fullAchievementArray.find(achievement => achievement.name === "Participation Trophy");
 
-    if (participation?.years.length === getYears(false).length) {
-        addOrUpdateAchievement(fullAchievementArray, "Perfect Attendance", "Participated in every Canvas event", "award_star", getYear());
+    if (participation?.years.length === Object.keys(getYears(false)).length) {
+        addOrUpdateAchievement(fullAchievementArray, "Perfect Attendance", "Participated in every Canvas event", "award_star", state.currentYear);
     }
 
     return fullAchievementArray;

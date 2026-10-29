@@ -1,64 +1,33 @@
-import { loadFooter, loadHeader } from "./modules/templates";
-import { createMessage } from "./modules/utils";
-import { getYears } from "./services/canvas.service";
-import { registerSW } from 'virtual:pwa-register';
+import { state } from './modules/state.module';
+import { loadFooter, loadHeader } from './modules/templates.module';
+import { createMessage } from './modules/utils.module';
+import { router } from './router';
+import { renderAchievements } from './views/achievements.view';
+import { renderAdvancedSearch } from './views/advanced.view';
+import { renderDraw } from './views/draw.view';
+import { renderFAQ } from './views/faq.view';
+import { renderHomepage } from './views/homepage.view';
+import { renderInstance } from './views/instance.view';
+import { renderInstances } from './views/instances.view';
+import { renderNotFound } from './views/notFound.view';
+import { renderSearch } from './views/search.view';
+import { renderUser } from './views/user.view';
+import { renderUsers } from './views/users.view';
+const appElement = document.getElementById('app') as HTMLDivElement;
 
-registerSW({
-  immediate: true,
-  onNeedRefresh() {
-    window.location.reload();
+async function initApp() {
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const yearParam = urlParams.get("year");
+  if (yearParam && parseInt(yearParam)) {
+    state.setYear(parseInt(yearParam));
   }
-});
 
-let year: number = 2026;
-// Get the year from the url
-const urlParams = new URLSearchParams(window.location.search);
-const yearString: string | null = urlParams.get('year');
-const years = getYears(false);
-//Set the year
-if (yearString) {
-  const searchForYear = years.find(year => year.contentKey === yearString);
-  if (!searchForYear) {
-    createMessage(`Error: ${yearString} is not a valid year`, "main-message", "error");
-  } else {
-    year = isNaN(parseInt(yearString)) ? parseInt(years[years.length - 1].contentKey) : parseInt(yearString);
-  }
-}
-let search: string | null = urlParams.get('search');
-
-export function getYear() {
-  return year;
-}
-
-export function getSearchString() {
-  return search;
-}
-
-//Adding comment to force redeploy
-export async function initializeApp(parentPage: string, currentPage: string, showSearch: boolean) {
-  if (currentPage !== "") {
-    //Set the page title
-    document.title = `${currentPage} - Canvas Stats`;
-  }
-  //Wait for the DOM to load
-  await new Promise<void>(resolve => {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => resolve(), { once: true });
-    } else {
-      resolve();
-    }
-  });
-
-  loadHeader(parentPage, showSearch);
-  //Load the footer
+  // Setup page elements
+  await loadHeader();
   loadFooter();
-  const header = document.querySelector('header') as HTMLElement;
-  const search = document.getElementById('search')
-  header.classList.remove('hide');
-  if (search) {
-    search.classList.remove('hide');
-  }
 
+  //Load any stored messages
   const storedMessageString = sessionStorage.getItem("message");
   if (storedMessageString) {
     const storedMessage = JSON.parse(storedMessageString);
@@ -67,4 +36,66 @@ export async function initializeApp(parentPage: string, currentPage: string, sho
     sessionStorage.removeItem("message");
   }
 
+  // Routes
+  router.addRoute('/', () => {
+    renderHomepage(appElement);
+  });
+
+  router.addRoute('/achievements', () => {
+    renderAchievements({container: appElement});
+  });
+
+  router.addRoute('/advanced-search', () => {
+    renderAdvancedSearch(appElement);
+  })
+
+  router.addRoute('/faq', () => {
+    renderFAQ(appElement);
+  });
+
+  router.addRoute('/search/:query', (params) => {
+    const searchQuery = params.query;
+    renderSearch(appElement, searchQuery);
+  });
+
+  router.addRoute('/draw', () => {
+    renderDraw({container: appElement});
+  });
+
+  router.addRoute('/users', () => {
+    renderUsers({container: appElement});
+  });
+
+  router.addRoute('/users/:id', (params) => {
+    const username = params.id;
+    renderUser(appElement, username);
+  });
+
+  router.addRoute('/users/:username/draw', (params) => {
+    const username = params.username;
+    renderDraw({container: appElement, username: username});
+  });
+
+  router.addRoute('/instances', () => {
+    renderInstances(appElement);
+  });
+
+  router.addRoute('/instances/:id', (params) => {
+    const instanceName = params.id;
+    renderInstance(appElement, instanceName);
+  });
+
+  router.addRoute('/instances/:id/users', (params) => {
+    const instanceName = params.id;
+    renderUsers({container: appElement, instanceName: instanceName});
+  });
+
+  router.addRoute('*', () => {
+    const attemptedPath = window.location.pathname.replace(/^\/+/, '');
+    renderNotFound(appElement, {pageId: attemptedPath});
+  });
+
+  router.init();
 }
+
+initApp();

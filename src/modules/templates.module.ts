@@ -1,6 +1,6 @@
+import { router } from "../router";
 import { getClaimedUser } from "../services/db.service";
-import { navigateTo } from "./navigate";
-import { makeElement } from "./utils";
+import { makeElement } from "./utils.module";
 
 function createLinkWithIcon(data: LinkWithIcon) {
     const linkElem = document.createElement("a") as HTMLAnchorElement;
@@ -32,20 +32,20 @@ const navItems: LinkWithIcon[] = [
     { linkText: "Home", href: "/", external: false, materialIcon: "home" },
     { linkText: "Users", href: "/users/", external: false, materialIcon: "group" },
     { linkText: "Instances", href: "/instances/", external: false, materialIcon: "dns" },
-    { linkText: "Advanced Search", href:"/advanced-search", external: false, materialIcon: "search" },
+    { linkText: "Advanced Search", href: "/advanced-search", external: false, materialIcon: "search" },
     { linkText: "Achievements", href: "/achievements", external: false, materialIcon: "trophy" },
     { linkText: "F.A.Q.", href: "/faq", external: false, materialIcon: "contact_support" },
     { linkText: "Go To Canvas", href: "https://canvas.fediverse.events", external: true, materialIcon: "open_in_new" }
 ]
 
-export async function loadHeader(activeNavLink: string, showSearch: boolean) {
+export async function loadHeader() {
     const header = document.querySelector("header") as HTMLElement;
     const logo = makeElement("div", "logo", null, null);
     const logoImage = document.createElement("img");
     logoImage.src = "https://raw.githubusercontent.com/CanvasStats/main/cb3fac2a0a08dcd846a53e0946a85ece3e2807bf/public/icon.svg";
     logoImage.alt = "Canvas Stats Logo"; // Recommended for accessibility
     const logoText = makeElement("h1", null, null, "Canvas Stats");
-    logo.addEventListener("click", () => navigateTo("/"));
+    logo.addEventListener("click", () => router.navigateTo("/"));
     logo.append(logoImage, logoText);
 
     const menuToggleLabel = makeElement("label", null, "nav-toggle-btn", null) as HTMLLabelElement;
@@ -70,10 +70,9 @@ export async function loadHeader(activeNavLink: string, showSearch: boolean) {
     const linksUl = navItems.reduce((acc: HTMLElement, link: LinkWithIcon) => {
         const li = makeElement("li", null, null, null);
         const linkElement = createLinkWithIcon(link);
-
-        if (activeNavLink === link.linkText) {
-            linkElement.setAttribute("aria-current", "page");
-        }
+        linkElement.addEventListener("click", () => {
+            menuToggleCheckbox.checked = false;
+        });
 
         li.appendChild(linkElement);
         acc.appendChild(li);
@@ -84,7 +83,10 @@ export async function loadHeader(activeNavLink: string, showSearch: boolean) {
     if (claimedResponse) {
         const userLink = makeElement("span", null, null, claimedResponse.split("@")[0]);
         userProfileLink.classList.add("clickable");
-        userProfileLink.addEventListener("click", () => navigateTo("/users/user", {params: {name: claimedResponse}}));
+        userProfileLink.addEventListener("click", () => {
+            router.navigateTo(`users/${claimedResponse}`);
+            menuToggleCheckbox.checked = false;
+        });
         userProfileLink.appendChild(userLink);
     } else {
         const userLink = makeElement("span", null, null, "No Profile Claimed");
@@ -95,47 +97,48 @@ export async function loadHeader(activeNavLink: string, showSearch: boolean) {
     const navBackdrop = makeElement("label", null, "nav-backdrop", null) as HTMLLabelElement;
     navBackdrop.htmlFor = "menu-toggle";
     document.body.append(navBackdrop, nav);
+}
 
-    //Search
-    if (showSearch) {
-        const search = document.getElementById("search") as HTMLFormElement;
-        const searchContainer = makeElement("div", "search-container", "search-bar-container", null);
-        const searchIcon = makeElement("span", null, "material-symbols-outlined", "search");
-        searchContainer.appendChild(searchIcon);
-        const searchInput = makeElement("input", "search-input", "search-bar", null) as HTMLInputElement
-        searchInput.setAttribute("type", "text");
-        searchInput.setAttribute("placeholder", "Search Users or Instances...");
-        searchInput.setAttribute("name", "search-input");
-        searchContainer.appendChild(searchInput);
-        search.appendChild(searchContainer);
-        const searchButton = makeElement("button", "search-button", "btn purple", "Search");
-        searchButton.setAttribute("type", "submit");
-        search.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const formData = new FormData(search);
-            const rawValue = formData.get("search-input");
-            if (!rawValue) return;
-            const term = rawValue.toString().trim();
-            if (!term) return;
-            const colonIndex = term.indexOf(":");
+export function loadSearchBar() {
+    const search = document.getElementById("search") as HTMLFormElement;
+    search.classList.remove("hide");
+    search.innerHTML = "";
+    const searchContainer = makeElement("div", "search-container", "search-bar-container", null);
+    const searchIcon = makeElement("span", null, "material-symbols-outlined", "search");
+    searchContainer.appendChild(searchIcon);
+    const searchInput = makeElement("input", "search-input", "search-bar", null) as HTMLInputElement
+    searchInput.setAttribute("type", "text");
+    searchInput.setAttribute("placeholder", "Search Users or Instances...");
+    searchInput.setAttribute("name", "search-input");
+    searchContainer.appendChild(searchInput);
+    search.appendChild(searchContainer);
+    const searchButton = makeElement("button", "search-button", "btn purple", "Search");
+    searchButton.setAttribute("type", "submit");
+    search.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const formData = new FormData(search);
+        const rawValue = formData.get("search-input");
+        if (!rawValue) return;
+        const term = rawValue.toString().trim();
+        if (!term) return;
+        const colonIndex = term.indexOf(":");
 
-            if (colonIndex !== -1) {
-                const prefix = term.substring(0, colonIndex).trim().toLowerCase();
-                const value = term.substring(colonIndex + 1).trim();
-                if (prefix === "u" || prefix === "user") {
-                    navigateTo("/users/", { params: { username: value } });
-                    return;
-                }
-
-                if (prefix === "i" || prefix === "instance") {
-                    navigateTo("/instances/", { params: { name: value } });
-                    return;
-                }
+        if (colonIndex !== -1) {
+            const prefix = term.substring(0, colonIndex).trim().toLowerCase();
+            const value = term.substring(colonIndex + 1).trim();
+            if (prefix === "u" || prefix === "user") {
+                router.navigateTo(`/users/${value}`);
+                return;
             }
-            navigateTo("/search", { params: { term: term } });
-        });
-        search.appendChild(searchButton);
-    }
+
+            if (prefix === "i" || prefix === "instance") {
+                router.navigateTo(`/instances/${value}`);
+                return;
+            }
+        }
+        router.navigateTo(`/search/${term}`);
+    });
+    search.appendChild(searchButton);
 }
 
 export function loadFooter() {

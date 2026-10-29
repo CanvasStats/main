@@ -1,10 +1,18 @@
-import { DrawParams, Instance, Pixel, type ColorCount, type DataRow, type UserItem } from "../models";
-import { convertColor, fetchHTML } from "../modules/utils";
+import type { ColorCount } from "../models/color.model";
+import { type DataRow } from "../models/helpers.model";
+import { Instance } from "../models/instance.model";
+import { DrawParams, type Pixel } from "../models/pixel.model";
+import { state } from "../modules/state.module";
+import { convertColor, fetchHTML } from "../modules/utils.module";
 import { getPixelsForDraw } from "./canvas.service";
+import { getAllUsers } from "./users.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
 export async function getAllInstances(): Promise<Instance[]> {
+    if (state.instances) {
+        return state.instances;
+    }
     try {
         const userCSVData = await fetchHTML(`${baseURL}/instances.csv`);
         if (!userCSVData) {
@@ -48,7 +56,7 @@ export async function getAllInstances(): Promise<Instance[]> {
                 pixelsByYear
             ));
         }
-
+        state.setInstances(instances);
         return instances;
     } catch (error: any) {
         throw new Error("Could not get instances. Please try reloading the page");
@@ -62,58 +70,83 @@ export async function getInstanceNameForId(id: number): Promise<string | null> {
     return null;
 }
 
-export async function getAllUsersForInstance(instanceId: number, year: number) {
-    try {
-        const userCSVData = await fetchHTML(`${baseURL}/allUserRanking.csv`);
-        if (userCSVData) {
-            //Split the csv file into lines
-            const lines = userCSVData.trim().split('\n');
-            const headers = lines.shift();
-            if (!headers) return [];
-            const header = headers.split(',').map((h: string) => h.trim());
-            const userInstanceIdIndex = header.indexOf("instance_id");
-            const usernameIndex = header.indexOf("username");
-            const rankIndex = header.indexOf(`rank_${year}`);
-            const pixelsIndex = header.indexOf(`pixels_${year}`);
-
-            const users: UserItem[] = [];
-
-            for (const line of lines) {
-                const values = line.split(",");
-                if (values.length === header.length) {
-                    if (+values[userInstanceIdIndex].trim() === instanceId) {
-                        const user: UserItem = {
-                            username: values[usernameIndex]?.trim() || '',
-                            userRank: +values[rankIndex]?.trim() || undefined,
-                            pixelsPlaced: +values[pixelsIndex]?.trim() || undefined
-                        }
-                        if (year === 0) {
-                            let yearsCount = 0;
-                            if (values[2].trim()) yearsCount += 1;
-                            if (values[4].trim()) yearsCount += 1;
-                            if (values[6].trim()) yearsCount += 1;
-                            user.yearsParticipated = yearsCount;
-                            users.push(user);
-                        } else {
-                            if (user.userRank) users.push(user);
-                        }
-                    }
-                } else {
-                    console.warn(`Skipping ${line} due to incorrect number of columns.`);
-                }
-            }
-            return users;
-        } else {
-            throw new Error("Could not get users. Please try reloading the page");
-        }
-    } catch (error: any) {
-        throw new Error("Could not get users. Please try reloading the page");
+export async function getInstanceIdForName(instanceName: string): Promise<number | null> {
+    const allInstances = await getAllInstances();
+    const result = allInstances.find(instance => instance.instanceName === instanceName);
+    if (result) {
+        return result.instanceId
     }
+    return null;
 }
 
-export async function getInstanceForId(instanceId: number): Promise<Instance | null> {
+export async function getUsernameForInstance(instanceId: number): Promise<string[]> {
+    const allUsers = await getAllUsers();
+    if (!allUsers) return [];
+
+    return allUsers
+        .filter(user => user.instance_id === instanceId)
+        .map(user => user.username.toLowerCase());
+}
+
+// export async function getAllUsersForInstance(instanceId: number, year: number) {
+//     try {
+//         const userCSVData = await fetchHTML(`${baseURL}/allUserRanking.csv`);
+//         if (userCSVData) {
+//             //Split the csv file into lines
+//             const lines = userCSVData.trim().split('\n');
+//             const headers = lines.shift();
+//             if (!headers) return [];
+//             const header = headers.split(',').map((h: string) => h.trim());
+//             const userInstanceIdIndex = header.indexOf("instance_id");
+//             const usernameIndex = header.indexOf("username");
+//             const rankIndex = header.indexOf(`rank_${year}`);
+//             const pixelsIndex = header.indexOf(`pixels_${year}`);
+
+//             const users: UserItem[] = [];
+
+//             for (const line of lines) {
+//                 const values = line.split(",");
+//                 if (values.length === header.length) {
+//                     if (+values[userInstanceIdIndex].trim() === instanceId) {
+//                         const user: UserItem = {
+//                             username: values[usernameIndex]?.trim() || '',
+//                             userRank: +values[rankIndex]?.trim() || undefined,
+//                             pixelsPlaced: +values[pixelsIndex]?.trim() || undefined
+//                         }
+//                         if (year === 0) {
+//                             let yearsCount = 0;
+//                             if (values[2].trim()) yearsCount += 1;
+//                             if (values[4].trim()) yearsCount += 1;
+//                             if (values[6].trim()) yearsCount += 1;
+//                             user.yearsParticipated = yearsCount;
+//                             users.push(user);
+//                         } else {
+//                             if (user.userRank) users.push(user);
+//                         }
+//                     }
+//                 } else {
+//                     console.warn(`Skipping ${line} due to incorrect number of columns.`);
+//                 }
+//             }
+//             return users;
+//         } else {
+//             throw new Error("Could not get users. Please try reloading the page");
+//         }
+//     } catch (error: any) {
+//         throw new Error("Could not get users. Please try reloading the page");
+//     }
+// }
+
+// export async function getInstanceForId(instanceId: number): Promise<Instance | null> {
+//     const allInstances = await getAllInstances();
+//     const search = allInstances.find(instance => instance.instanceId === instanceId);
+//     if (search) return search;
+//     return null;
+// }
+
+export async function getInstance(instanceName: string): Promise<Instance | null> {
     const allInstances = await getAllInstances();
-    const search = allInstances.find(instance => instance.instanceId === instanceId);
+    const search = allInstances.find(instance => instance.instanceName === instanceName);
     if (search) return search;
     return null;
 }

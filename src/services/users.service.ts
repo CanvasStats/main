@@ -1,10 +1,18 @@
-import { type ColorCount, type User, DrawParams, type JsonObject, type ColorsCounts, UserRanks, type DataRow, Pixel, type EventPixelTotal } from "../models";
-import { createMessage, fetchHTML, convertColor } from "../modules/utils";
+import type { ColorsCounts, ColorCount } from "../models/color.model";
+import { type JsonObject, type DataRow } from "../models/helpers.model";
+import { type Pixel, type EventPixelTotal, DrawParams } from "../models/pixel.model";
+import { UserRanks, type User } from "../models/user.model";
+import { state } from "../modules/state.module";
+import { createMessage, fetchHTML, convertColor } from "../modules/utils.module";
 import { getYearCounts, getPixelsForDraw, countUsersFinalPixels, getPixelDataForYear } from "./canvas.service";
 
 const baseURL: string = "https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main";
 
 export async function getAllUsers(): Promise<UserRanks[]> {
+    if (state.userRanks) {
+        return state.userRanks;
+    }
+    console.warn("fetching user ranks");
     try {
         const userCSVData = await fetchHTML(`${baseURL}/allUserRanking.csv`);
         if (!userCSVData) {
@@ -48,54 +56,73 @@ export async function getAllUsers(): Promise<UserRanks[]> {
                 pixelsByYear
             ));
         }
-
+        state.setUserRanks(users);
         return users;
     } catch (error: any) {
         throw new Error("Could not get users. Please try reloading the page");
     }
 }
 
-async function getAllUserStatsForYear(year: number) {
+export async function getAllUserStatsForYear(year: number): Promise<User[] | null> {
+    const cachedUsers = state.getFromUsersCache(year);
+    if (cachedUsers) {
+        console.log(`User stats for ${year} already in state`)
+        return cachedUsers;
+    }
+    console.warn(`Fetching user stats for ${year}`)
     try {
         const allUserCSVData = await fetchHTML(`${baseURL}/${year}/users.csv`);
-        if (allUserCSVData) {
-            //Split the csv file into lines
-            const lines = allUserCSVData.trim().split('\n');
-            //Define the column headers
-            const header = lines[0].split(',').map(h => h.trim());
-            const usernameIndex = header.indexOf('username');
-            const userRankIndex = header.indexOf('userRank');
-            const pixelCountIndex = header.indexOf('numPixels');
-            const xCordIndex = header.indexOf('xCoordinateTop');
-            const yCordIndex = header.indexOf('yCoordinateTop');
-            const cordCountIndex = header.indexOf('NumPixelsTop');
-
-            const userList: User[] = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',');
-                if (values.length === header.length) {
-                    const user: User = {
-                        username: values[usernameIndex]?.trim() || '',
-                        userRank: +values[userRankIndex]?.trim() || 0,
-                        pixelCount: +values[pixelCountIndex]?.trim() || 0,
-                        xCord: +values[xCordIndex]?.trim() || 0,
-                        yCord: +values[yCordIndex]?.trim() || 0,
-                        cordCount: +values[cordCountIndex]?.trim() || 0
-                    };
-                    userList.push(user);
-                } else {
-                    console.warn(`Skipping row ${i + 1} due to incorrect number of columns.`);
-                }
-            }
-            return userList;
+        
+        if (!allUserCSVData) {
+            return null;
         }
+
+        // Split the CSV into lines and filter out any empty trailing lines
+        const lines = allUserCSVData.trim().split('\n').filter(line => line.trim() !== '');
+        
+        if (lines.length === 0) {
+            return null;
+        }
+
+        // Define the column headers
+        const header = lines[0].split(',').map(h => h.trim());
+        const usernameIndex = header.indexOf('username');
+        const userRankIndex = header.indexOf('userRank');
+        const pixelCountIndex = header.indexOf('numPixels');
+        const xCordIndex = header.indexOf('xCoordinateTop');
+        const yCordIndex = header.indexOf('yCoordinateTop');
+        const cordCountIndex = header.indexOf('NumPixelsTop');
+
+        const userList: User[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            
+            if (values.length === header.length) {
+                const user: User = {
+                    username: values[usernameIndex] || '',
+                    userRank: +values[userRankIndex] || 0,
+                    pixelCount: +values[pixelCountIndex] || 0,
+                    xCord: +values[xCordIndex] || 0,
+                    yCord: +values[yCordIndex] || 0,
+                    cordCount: +values[cordCountIndex] || 0
+                };
+                userList.push(user);
+            } else {
+                console.warn(`Skipping row ${i + 1} due to incorrect number of columns.`);
+            }
+        }
+
+        state.addToUsersCache(year, userList);
+        return userList;
+
     } catch (error) {
-        throw new Error(`Error getting all user stats for ${year}: ${error}`)
+        throw new Error(`Error getting all user stats for ${year}: ${error}`);
     }
 }
 
 export async function getUserObject(username: string, year: number) {
-    const allUsersData: User[] | undefined = await getAllUserStatsForYear(year);
+    const allUsersData: User[] | null = await getAllUserStatsForYear(year);
     if (allUsersData) {
         return allUsersData.find(user => user['username'].toLowerCase() === username.toLowerCase());
     }
@@ -170,7 +197,7 @@ export async function getUserStats(username: string, year: number) {
                     layout: "left",
                     icon: "leaderboard",
                     content: [
-                        `You ranked ${user['userRank']} out of ${yearCounts[0]['contentValue']} users in ${year}`
+                        `You ranked ${user['userRank']} out of ${yearCounts.userCount} users in ${year}`
                     ]
                 },
                 {
@@ -241,22 +268,22 @@ export async function getUserStats(username: string, year: number) {
                         {
                             linkText: "on white background",
                             classes: "white",
-                            page: "/draw",
-                            queryParams: { "sentFrom": "user", "year": year, "background": "white", "username": username },
+                            page: `users/${username}/draw`,
+                            queryParams: { "sentFrom": "user", "year": year, "background": "white" },
                             external: false
                         },
                         {
                             linkText: "on black background",
                             classes: "black",
-                            page: "/draw",
-                            queryParams: { "sentFrom": "user", "year": year, "background": "black", "username": username },
+                            page: `users/${username}/draw`,
+                            queryParams: { "sentFrom": "user", "year": year, "background": "black" },
                             external: false
                         },
                         {
                             linkText: "on transparent background",
                             classes: "dark-grey",
-                            page: "/draw",
-                            queryParams: { "sentFrom": "user", "year": year, "background": "transparent", "username": username },
+                            page: `users/${username}/draw`,
+                            queryParams: { "sentFrom": "user", "year": year, "background": "transparent" },
                             external: false
                         }
                     ]

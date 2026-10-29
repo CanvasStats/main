@@ -1,42 +1,37 @@
-import { ContentPair, DrawParams, Pixel } from "../models";
-import { createMessage, fetchHTML, getRandomColor } from "../modules/utils";
+import { DrawParams, type Pixel } from "../models/pixel.model";
+import { state } from "../modules/state.module";
+import { createMessage, fetchHTML, getRandomColor } from "../modules/utils.module";
 
-const years: string[] = ["2023", "2024", "2025", "2026"];
-const yearUserCounts: ContentPair[] = [
-    new ContentPair("2026", "589"),
-    new ContentPair("2025", "638"),
-    new ContentPair("2024", "1912"),
-    new ContentPair("2023", "2204")
-];
-const yearPixelCounts: ContentPair[] = [
-    new ContentPair("2026", "309205"),
-    new ContentPair("2025", "313408"),
-    new ContentPair("2024", "658367"),
-    new ContentPair("2023", "630578")
-];
 const baseURL: string = "https://raw.githubusercontent.com/TheRealMonte/data-files/main";
 
-export function getYears(includeAll: boolean): ContentPair[] {
-    const yearsToReturn: ContentPair[] = [];
-    if (includeAll) {
-        yearsToReturn.push(new ContentPair("All", getRandomColor(0, true)));
+export function getYears(includeAll: boolean): Record<string, string> {
+    const yearsToReturn: Record<string | number, string> = {
+        2023: getRandomColor(0, true),
+        2024: getRandomColor(1, true),
+        2025: getRandomColor(2, true),
+        2026: getRandomColor(3, true)
     }
-    years.forEach((year: string, index: number) => {
-        yearsToReturn.push(new ContentPair(year, getRandomColor(index + 1, true)));
-    });
+    if (includeAll) {
+        yearsToReturn["All"] = getRandomColor(0, true);
+    }
     return yearsToReturn;
 }
 
-export function getYearCounts(year: number): ContentPair[] {
-    const counts: ContentPair[] = []
-    const yearUserCount: ContentPair | undefined = yearUserCounts.find(userCount => userCount['contentKey'] === year.toString());
-    const yearPixelCount: ContentPair | undefined = yearPixelCounts.find(pixelCount => pixelCount['contentKey'] === year.toString());
-    if (yearUserCount) counts.push(yearUserCount);
-    if (yearPixelCount) counts.push(yearPixelCount);
-    return counts;
+export function getYearCounts(year: number): { userCount: number, pixelCount: number } {
+    const yearCounts: Record<number, { userCount: number, pixelCount: number }> = {
+        2023: { userCount: 2204, pixelCount: 630578 },
+        2024: { userCount: 1912, pixelCount: 658367 },
+        2025: { userCount: 638, pixelCount: 313408 },
+        2026: { userCount: 589, pixelCount: 309205 }
+    }
+    return yearCounts[year];
 }
 
 export async function getPixelDataForYear(year: number) {
+    if (state.getFromPixelCache(year)) {
+        return state.getFromPixelCache(year);
+    }
+
     try {
         const pixelsCSVData = await fetchHTML(`${baseURL}/${year}/pixels${year}.csv`);
         if (!pixelsCSVData) return null;
@@ -81,13 +76,14 @@ export async function getPixelDataForYear(year: number) {
                 console.warn(`Skipping row ${i + 1}: Expected ${header.length} columns, got ${values.length}`);
             }
         }
-
+        state.addToPixelCache(year, pixelList);
         return pixelList;
     } catch (error: any) {
         createMessage("Error loading pixel data. Please try reloading the page", "main-message", "error");
         console.error(`Reason for failed fetch:`, error);
         return null;
     }
+
 }
 
 export async function getPixelsForDraw(params: DrawParams) {

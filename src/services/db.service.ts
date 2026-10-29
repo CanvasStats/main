@@ -1,4 +1,4 @@
-import type { Achievement } from "../models";
+import type { Achievement } from "../models/achievement.model";
 
 const DB_NAME = 'pwa_stats_db';
 const DB_VERSION = 14;

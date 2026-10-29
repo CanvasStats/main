@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
-import type { ColorCount, DataRow } from '../models';
-import { navigateTo } from './navigate';
+import type { ColorCount } from '../models/color.model';
+import type { DataRow } from '../models/helpers.model';
+import { router } from '../router';
 
 type PieArc = d3.PieArcDatum<ColorCount>;
 
@@ -56,9 +57,9 @@ export function createColorCountPieChart(year: number, colorCounts: ColorCount[]
         .on("click", (_event, d) => {
             if (isLink) {
                 if (d.data.class === "white") {
-                    navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year } });
+                    router.navigateTo("/draw", false, { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year });
                 } else {
-                    navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year } });
+                    router.navigateTo("/draw", false, { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year });
                 }
             }
         })
@@ -255,9 +256,9 @@ export function createColorTreemap(
                 .style('cursor', 'pointer')
                 .on("click", (_event, d) => {
                     if (d.data.class === "white") {
-                        navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year } });
+                        router.navigateTo("/draw", false, { "sentFrom": "home", "color": d.data.class, "background": "black", "year": year });
                     } else {
-                        navigateTo("/draw", { params: { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year } });
+                        router.navigateTo("/draw", false, { "sentFrom": "home", "color": d.data.class, "background": "white", "year": year });
                     }
                 })
                 .on('mouseover', function () {

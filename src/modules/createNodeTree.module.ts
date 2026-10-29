@@ -1,7 +1,7 @@
-import { Link } from "../models";
-import { navigateTo } from "./navigate";
+import { Link } from "../models/helpers.model";
+import { router } from "../router";
 
-export function getBlockStructure(block: any, year: number) {
+export function getBlockStructure(block: any) {
     const sectionChildren: any[] = [];
     if (block.title) {
         sectionChildren.push({ elem: 'h3', attr: 'class', attrVal: 'center', txtNode: block.title });
@@ -9,37 +9,33 @@ export function getBlockStructure(block: any, year: number) {
 
     switch (block.type) {
         case 'standard':
-            block.content.forEach((paragraph: string | (string | Link)[]) => {
-                if (typeof paragraph === 'string') {
-                    sectionChildren.push({ elem: 'p', attr: 'class', attrVal: 'text', txtNode: paragraph });
+            const paragraphParts = block.content.map((part: string | Link) => {
+                if (typeof part === 'string') {
+                    return { elem: 'span', txtNode: part };
+                }
+                if (part.external) {
+                    return {
+                        elem: 'a',
+                        attr: 'href',
+                        attrVal: part.url || '#',
+                        txtNode: part.linkText,
+                        attributes: { target: '_blank', rel: 'noopener noreferrer' }
+                    };
                 } else {
-                    const paragraphParts = paragraph.map(part => {
-                        if (typeof part === 'string') {
-                            return { elem: 'span', txtNode: part };
+                    return {
+                        elem: 'a',
+                        attr: 'class',
+                        attrVal: `clickable-text ${part.classes || ''}`,
+                        txtNode: part.linkText,
+                        onClick: (e: Event) => {
+                            e.preventDefault();
+                            router.navigateTo(part.page);
                         }
-                        if (part.external) {
-                            return {
-                                elem: 'a',
-                                attr: 'href',
-                                attrVal: part.url || '#',
-                                txtNode: part.linkText,
-                            };
-                        } else {
-                            return {
-                                elem: 'a',
-                                attr: 'class',
-                                attrVal: `clickable-text ${part.classes}`,
-                                txtNode: part.linkText,
-                                onClick: (e: Event) => {
-                                    e.preventDefault();
-                                    navigateTo(part.page, { params: part.queryParams });
-                                }
-                            };
-                        }
-                    });
-                    sectionChildren.push({ elem: 'p', attr: 'class', attrVal: 'text' }, paragraphParts);
+                    };
                 }
             });
+
+            sectionChildren.push({ elem: 'p', attr: 'class', attrVal: 'text' }, paragraphParts);
             break;
 
         case 'color-grid':
@@ -69,14 +65,14 @@ export function getBlockStructure(block: any, year: number) {
                         elem: 'a',
                         attr: 'class',
                         attrVal: 'clickable-text',
-                        txtNode: item.contentKey,
+                        txtNode: item.key,
                         onClick: () => {
-                            navigateTo("/users/user", { params: { name: item.contentKey, year: year } });
+                            router.navigateTo(`/users/${item.key}`, false);
                         }
                     },
                     {
                         elem: 'span',
-                        txtNode: `: ${item.contentValue}`
+                        txtNode: `: ${item.value}`
                     }
                 ]);
             });
@@ -88,13 +84,20 @@ export function getBlockStructure(block: any, year: number) {
             break;
 
         case 'button-group':
+            console.log("Found button group")
             const buttonNodes = block.buttons.map((btn: Link) => ({
                 elem: 'button',
                 attr: 'class',
                 attrVal: `btn ${btn.classes}`,
                 txtNode: btn.linkText,
                 onClick: () => {
-                    navigateTo(btn.page, { params: btn.queryParams });
+                    if (btn.queryParams) {
+                        const urlParams = btn.queryParams as Record<string, string | number | boolean>;
+                        router.navigateTo(btn.page, false, urlParams);
+                    } else {
+                        router.navigateTo(btn.page)
+                    }
+
                 }
             }));
 
@@ -128,6 +131,7 @@ export function renderTree(structure: any[], parent: HTMLElement) {
             if (lastElement) renderTree(item, lastElement);
         } else {
             const el = document.createElement(item.elem);
+
             if (item.attributes) {
                 Object.entries(item.attributes).forEach(([key, value]) => {
                     el.setAttribute(key, value as string);
@@ -139,6 +143,16 @@ export function renderTree(structure: any[], parent: HTMLElement) {
 
             if (item.onClick) {
                 el.onclick = item.onClick;
+            }
+
+            const rawRoute = item.to || (item.elem === 'a' && item.attributes?.href ? item.attributes.href : null);
+            const isExternal = rawRoute && (rawRoute.startsWith('http') || rawRoute.startsWith('mailto:'));
+
+            if (rawRoute && !isExternal) {
+                el.addEventListener('click', (e: MouseEvent) => {
+                    e.preventDefault();
+                    router.navigateTo(rawRoute);
+                });
             }
 
             parent.appendChild(el);

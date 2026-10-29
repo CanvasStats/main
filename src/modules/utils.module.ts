@@ -1,7 +1,9 @@
-import type { ColorCount, Link, LiveColorCount, LiveStats } from "../models";
+import { Link } from "../models/helpers.model";
+import type { ColorCount } from "../models/color.model";
+import type { LiveColorCount, LiveStats } from "../models/live.model";
+import { router } from "../router";
 import { getLiveColorCounts, getUsersOnline } from "../services/live.service";
-import { createColorTreemap, createLineGraph } from "./d3Graphics";
-import { navigateTo } from "./navigate";
+import { createColorTreemap, createLineGraph } from "./d3Graphics.module";
 
 export function createIconDiv(iconType: string, iconName: string) {
   const iconDiv = makeElement("div", null, "icon", null);
@@ -289,7 +291,7 @@ export async function comingSoonBlock(statsContainer: HTMLElement, countdownInte
     const teamTemplateIcon = makeElement("span", null, "material-symbols-outlined", "open_in_new");
     teamTemplate.append(teamTemplateText, teamTemplateIcon);
     const colors = makeElement("a", null, "clickable btn orange", "Color palette");
-    colors.onclick = function () { navigateTo("/colors") }
+    colors.onclick = function () { router.navigateTo("/colors") }
     templateButtonRow.append(canvasLink, teamTemplate, colors);
     templateInfo.append(templateP, templateButtonRow);
     templateArticle.append(templateIcon, templateInfo);

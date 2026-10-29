@@ -1,5 +1,6 @@
-import type { DataRow, LiveStats } from "../models";
-import { createMessage, fetchHTML } from "../modules/utils";
+import type { DataRow } from "../models/helpers.model";
+import type { LiveStats } from "../models/live.model";
+import { createMessage, fetchHTML } from "../modules/utils.module";
 
 //https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main/users_online2026.csv
 //https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main/counts2026.json
