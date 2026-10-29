@@ -79,7 +79,7 @@ export async function getPixelDataForYear(year: number) {
         state.addToPixelCache(year, pixelList);
         return pixelList;
     } catch (error: any) {
-        createMessage("Error loading pixel data. Please try reloading the page", "main-message", "error");
+        createMessage({message: "Error loading pixel data. Please try reloading the page", location: "main-message", type: "error"});
         console.error(`Reason for failed fetch:`, error);
         return null;
     }

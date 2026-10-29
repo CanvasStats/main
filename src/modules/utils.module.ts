@@ -440,10 +440,13 @@ class Message {
 }
 
 export function createMessage(
-  message: string,
-  location: string,
-  type: string,
-  timeoutSeconds: number = 0
+  params: {
+    message: string;
+    location: string;
+    type: string;
+    timeoutSeconds?: number;
+    onUpdate?: () => void;
+  }
 ) {
   clearMessages();
   const typeMap: Record<string, { class: string; role?: string; live?: string }> = {
@@ -453,20 +456,22 @@ export function createMessage(
     warning: { class: "warn message", live: "polite" }
   };
 
-  if (type === "error") console.error(message);
-  if (type === "delete" || type === "warning") console.warn(message);
+  if (params.type === "error") console.error(params.message);
+  if (params.type === "delete" || params.type === "warning") console.warn(params.message);
 
-  const config = typeMap[type] || { class: "info message", live: "polite" };
-  const wrapperId = location === "main-message" ? "main-message" : null;
-  const messageWrapper = makeElement("div", wrapperId, "message-wrapper", null) as HTMLElement;
-
+  const config = typeMap[params.type] || { class: "info message", live: "polite" };
+  const wrapperId = params.location === "main-message" ? "main-message" : null;
+  let messageWrapper = document.getElementById("message-wrapper");
+  if (!messageWrapper) {
+    messageWrapper = makeElement("div", wrapperId, "message-wrapper", null) as HTMLElement;
+  }
   const messageDiv = document.createElement("div");
   messageDiv.className = config.class;
   if (config.role) messageDiv.setAttribute("role", config.role);
   if (config.live) messageDiv.setAttribute("aria-live", config.live);
 
-  const icon = makeElement("span", null, "material-symbols-outlined", type);
-  const messageText = document.createTextNode(message);
+  const icon = makeElement("span", null, "material-symbols-outlined", params.type);
+  const messageText = document.createTextNode(params.message);
 
   const closeButton = document.createElement("button");
   closeButton.type = "button";
@@ -477,8 +482,18 @@ export function createMessage(
   document.body.prepend(messageWrapper);
 
   const dismiss = () => { messageWrapper.innerHTML = ""; };
-  closeButton.addEventListener("click", dismiss);
-  if (timeoutSeconds > 0) setTimeout(dismiss, timeoutSeconds * 1000);
+
+  if (params.onUpdate) {
+    closeButton.addEventListener("click", () => {
+      params.onUpdate!();
+      dismiss();
+    });
+  } else {
+    closeButton.addEventListener("click", dismiss);
+    if (params.timeoutSeconds && params.timeoutSeconds > 0) {
+      setTimeout(dismiss, params.timeoutSeconds * 1000);
+    }
+  }
 }
 
 export function clearMessages() {
@@ -537,5 +552,5 @@ export function createInput(inputType: string, id: string, labelText: string | n
 }
 
 export function capitalizeFirstLetter(val: string) {
-    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }

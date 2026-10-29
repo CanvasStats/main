@@ -111,12 +111,12 @@ export async function renderAchievements(params: { container: HTMLElement }) {
             userAchievementArray = await checkAchievementsForUser(claimedUsername, yearsUserParticipated, tempAchArray);
             await addAchievementsToDB(userAchievementArray);
 
-            createMessage(`You unlocked ${userAchievementArray.length} Achievement${userAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
+            createMessage({message: `You unlocked ${userAchievementArray.length} Achievement${userAchievementArray.length != 1 ? "s" : ""}!`, location: "main-message", type: "info", timeoutSeconds: 5});
         } else {
             userAchievementArray = await checkAchievementsForUser(claimedUsername, yearsUserParticipated, []);
             await addAchievementsToDB(userAchievementArray);
 
-            createMessage(`You unlocked ${userAchievementArray.length} Achievement${userAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
+            createMessage({message: `You unlocked ${userAchievementArray.length} Achievement${userAchievementArray.length != 1 ? "s" : ""}!`, location: "main-message", type: "info", timeoutSeconds: 5});
         }
         const userH2 = makeElement("h2", null, null, claimedUsername);
         const unlockedCount = makeElement("p", null, null, `You have unlocked ${userAchievementArray.length} out of ${achievements.length} achievements`);

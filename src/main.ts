@@ -13,6 +13,24 @@ import { renderNotFound } from './views/notFound.view';
 import { renderSearch } from './views/search.view';
 import { renderUser } from './views/user.view';
 import { renderUsers } from './views/users.view';
+import { registerSW } from 'virtual:pwa-register';
+
+const updateSW = registerSW({
+  onNeedRefresh() {
+    createMessage({
+      message: 'A new version of Canvas Stats is available! Click to update.',
+      location: 'main-message',
+      type: 'info',
+      timeoutSeconds: 0,
+      onUpdate: () => {
+        updateSW(true);
+      }
+    });
+  },
+  onOfflineReady() {
+    console.log('App ready to work offline!');
+  },
+});
 const appElement = document.getElementById('app') as HTMLDivElement;
 
 async function initApp() {
@@ -32,7 +50,7 @@ async function initApp() {
   if (storedMessageString) {
     const storedMessage = JSON.parse(storedMessageString);
     console.log(storedMessage['message'])
-    createMessage(storedMessage['message'], storedMessage['messageContainer'], storedMessage['icon']);
+    createMessage({message: storedMessage['message'], location: storedMessage['messageContainer'], type: storedMessage['icon']});
     sessionStorage.removeItem("message");
   }
 

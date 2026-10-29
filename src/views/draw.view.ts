@@ -238,7 +238,7 @@ export async function renderDraw(params: { container: HTMLElement, username?: st
             a.download = `${filename}-${background}.png`
             a.click();
         } catch (error) {
-            createMessage(`Error occurred while downloading ${filename}-${background}.png. Please try reloading the page`, "main-message", "error");
+            createMessage({message: `Error occurred while downloading ${filename}-${background}.png. Please try reloading the page`, location: "main-message", type: "error"});
             console.error("Error during download:", error);
         }
     }

@@ -73,7 +73,7 @@ export async function renderUser(container: HTMLElement, username: string) {
                 await clearAchievementsFromDB();
                 window.location.reload();
             } catch (error: any) {
-                createMessage(error, "main-message", "error");
+                createMessage({message: error, location: "main-message", type: "error"});
             }
         });
         userHeader.appendChild(claimProfileButton);
@@ -82,7 +82,7 @@ export async function renderUser(container: HTMLElement, username: string) {
     main.appendChild(userHeader);
 
     if (claimedUserValue && claimedUserValue === username) {
-        createMessage(`Welcome ${username}!`, "main-message", "waving_hand", 5);
+        createMessage({message: `Welcome ${username}!`, location: "main-message", type: "waving_hand", timeoutSeconds: 5});
         main.appendChild(achievementSection);
     }
 
@@ -93,7 +93,7 @@ export async function renderUser(container: HTMLElement, username: string) {
             if (!years[+viewYear]) {
                 console.error(`${viewYear} is not a valid year`);
             } else {
-                createMessage(`${username} did not participate in ${urlYear}`, "main-message", "warning");
+                createMessage({message: `${username} did not participate in ${urlYear}`, location: "main-message", type: "warning"});
             }
             viewYear = yearsUserParticipated[yearsUserParticipated.length - 1];
         }
@@ -147,12 +147,12 @@ export async function renderUser(container: HTMLElement, username: string) {
             fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, tempAchArray);
             await addAchievementsToDB(fullAchievementArray);
 
-            createMessage(`You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
+            createMessage({message: `You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, location: "main-message", type: "info", timeoutSeconds: 5});
         } else {
             fullAchievementArray = await checkAchievementsForUser(username, yearsUserParticipated, []);
             await addAchievementsToDB(fullAchievementArray);
 
-            createMessage(`You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, "main-message", "info", 5);
+            createMessage({message: `You unlocked ${fullAchievementArray.length} Achievement${fullAchievementArray.length != 1 ? "s" : ""}!`, location: "main-message", type: "info", timeoutSeconds: 5});
         }
 
         achievementSection.innerHTML = "";
@@ -232,7 +232,7 @@ export async function renderUser(container: HTMLElement, username: string) {
                 }
             }
         } else {
-            createMessage(`Could not load ${username}'s data for ${viewYear}`, "main-message", "error");
+            createMessage({message: `Could not load ${username}'s data for ${viewYear}`, location: "main-message", type: "error"});
         }
         mainLoader.classList.add("hide");
     }

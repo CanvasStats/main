@@ -34,7 +34,7 @@ export async function getUsersOnline() {
         }
         return null;
     } catch (error) {
-        createMessage("Error loading users online data. Please try reloading the page", "main-message", "error");
+        createMessage({message: "Error loading users online data. Please try reloading the page", location: "main-message", type: "error"});
         console.log(`Reason for failed fetch: ${error}`);
         return null;
     }
@@ -45,7 +45,7 @@ export async function getLiveColorCounts(): Promise<LiveStats> {
     const response = await fetch("https://raw.githubusercontent.com/CanvasStats/data-files/refs/heads/main/counts2026.json");
 
     if (!response.ok) {
-        createMessage("Error loading color counts. Please try reloading the page", "main-message", "error");
+        createMessage({message: "Error loading color counts. Please try reloading the page", location: "main-message", type: "error"});
     }
 
     const data = (await response.json()) as LiveStats;

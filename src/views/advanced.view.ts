@@ -41,13 +41,13 @@ export async function renderAdvancedSearch(container: HTMLElement) {
         const year = formData.get("year-to-search");
         let resultsTitle = "";
         if (!year) {
-            createMessage("Please select a year", "main-message", "error");
+            createMessage({message: "Please select a year", location: "main-message", type: "error"});
             return;
         } if (searchAreaSelection && !topX && !topY) {
-            createMessage("Please make sure you have filled in all fields", "main-message", "error");
+            createMessage({message: "Please make sure you have filled in all fields", location: "main-message", type: "error"});
             return;
         } else if (searchAreaSelection && searchAreaSelection === "area" && !bottomX && !bottomY) {
-            createMessage("Please make sure you have filled in all fields", "main-message", "error");
+            createMessage({message: "Please make sure you have filled in all fields", location: "main-message", type: "error"});
             return;
         }
         clearMessages();
@@ -199,7 +199,7 @@ export async function renderAdvancedSearch(container: HTMLElement) {
         if (usernameInput && usernameInput.toString().trim() !== "") {
             router.navigateTo("/users/", false, { username: usernameInput.toString().trim() });
         } else {
-            createMessage("Please enter a username", "main-message", "error");
+            createMessage({message: "Please enter a username", location: "main-message", type: "error"});
         }
     });
 
@@ -221,7 +221,7 @@ export async function renderAdvancedSearch(container: HTMLElement) {
         if (instanceInput && instanceInput.toString().trim() !== "") {
             router.navigateTo("/instances/", false, { name: instanceInput.toString().trim() });
         } else {
-            createMessage("Please enter a username", "main-message", "error");
+            createMessage({message: "Please enter a username", location:  "main-message", type: "error"});
         }
     });
 

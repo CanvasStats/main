@@ -354,7 +354,7 @@ export async function getColorCountsForYear(year: number) {
         }
         return null
     } catch (error: any) {
-        createMessage("Error: failed to load color data. Please try reloading the page", "main-message", "error");
+        createMessage({message: "Error: failed to load color data. Please try reloading the page", location: "main-message", type: "error"});
         console.error(`Reason for failed fetch: ${error}`);
         return null;
     }

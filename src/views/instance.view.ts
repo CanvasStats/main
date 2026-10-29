@@ -179,7 +179,7 @@ export async function renderInstance(container: HTMLElement, instanceName: strin
                 renderTree(structure, statsContainer);
                 loadingText.textContent = "All done!";
             } catch (error: any) {
-                createMessage(error, "main-message", "error");
+                createMessage({message: error, location: "main-message", type: "error"});
             }
 
             statsContainer.classList.remove("hide");
