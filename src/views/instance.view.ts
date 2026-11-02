@@ -1,12 +1,12 @@
 import type { DataRow } from "../models/helpers.model";
-import type { UserItem } from "../models/user.model";
+import type { UserRanks } from "../models/user.model";
 import { getBlockStructure, renderTree } from "../modules/createNodeTree.module";
 import { createColorTreemap, createLineGraph } from "../modules/d3Graphics.module";
 import { state } from "../modules/state.module";
 import { loadSearchBar } from "../modules/templates.module";
 import { addLoadingElement, clearMessages, createButton, createMessage, makeElement } from "../modules/utils.module";
 import { router } from "../router";
-import { getColorCountsForInstance, getFinalPixelsCountForInstance, getInstance, getPixelsForInstance, getPixelsPerHourForInstance, getUsernameForInstance } from "../services/instances.service";
+import { getColorCountsForInstance, getFinalPixelsCountForInstance, getInstance, getPixelsForInstance, getPixelsPerHourForInstance, getUsesForInstance } from "../services/instances.service";
 import { renderNotFound } from "./notFound.view";
 
 export async function renderInstance(container: HTMLElement, instanceName: string) {
@@ -22,6 +22,10 @@ export async function renderInstance(container: HTMLElement, instanceName: strin
         const loadingElement = document.getElementById("loading") as HTMLElement;
         const statsContainer = makeElement("div", "stats-container", null, null) as HTMLElement;
         const instanceId = instanceInfo.instanceId;
+
+        let usernames: string[] = [];
+        let users: UserRanks[] = [];
+        let UsersForYear: string[] = [];
 
         const urlParams = new URLSearchParams(window.location.search);
         const yearParam = urlParams.get("year");
@@ -49,6 +53,7 @@ export async function renderInstance(container: HTMLElement, instanceName: strin
 
             yearButton.onclick = async function () {
                 viewYear = parseInt(year);
+                UsersForYear = users.filter(user => Object.keys(user.ranks).includes(viewYear.toString())).map(user => user.username.toLowerCase());
                 state.setYear(+year);
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('year', String(viewYear));
@@ -82,9 +87,10 @@ export async function renderInstance(container: HTMLElement, instanceName: strin
 
             try {
                 loadingText.textContent = "Getting users for instance";
-                let users: UserItem[] = [];
+                users = await getUsesForInstance(instanceId);
                 let pixelsPlaced: number = 0;
-                const usernames: string[] = await getUsernameForInstance(instanceId);
+                usernames = users.map(user => user.username.toLowerCase());
+                UsersForYear = users.filter(user => Object.keys(user.ranks).includes(viewYear.toString())).map(user => user.username.toLowerCase());
                 loadingText.textContent = "Getting pixels for instance";
                 const instancePixels = await getPixelsForInstance(usernames, +viewYear);
                 let pixelsPerHour: DataRow[] | undefined = await getPixelsPerHourForInstance(instancePixels);
@@ -92,7 +98,7 @@ export async function renderInstance(container: HTMLElement, instanceName: strin
                 const usersArticle = makeElement("article", null, "left", null);
                 const usersIcon = makeElement("span", null, "material-symbols-outlined icon", "group");
                 const usersInfo = makeElement("section", null, null, null);
-                const usersP = makeElement("p", null, "text", `${users.length} users from ${instanceName} participated in Canvas ${viewYear}`);
+                const usersP = makeElement("p", null, "text", `${UsersForYear.length} users from ${instanceName} participated in Canvas ${viewYear}`);
                 const buttonRow = makeElement("div", null, "button-row center", null);
                 const viewUsers = createButton("green", `View ${viewYear} user list`);
                 viewUsers.onclick = function () { router.navigateTo(`/instances/${instanceName}/users`) }

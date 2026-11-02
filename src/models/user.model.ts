@@ -1,10 +1,3 @@
-export interface UserItem {
-    username: string;
-    userRank?: number;
-    yearsParticipated?: number;
-    pixelsPlaced?: number;
-}
-
 export class UserRanks {
     public instance_id: number;
     public username: string;

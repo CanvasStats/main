@@ -17,7 +17,6 @@ export async function renderDraw(params: { container: HTMLElement, username?: st
     const context = canvasElement.getContext("2d");
     const mainLoader = addLoadingElement();
     const urlParams = new URLSearchParams(window.location.search);
-    const usernameString: string | null = urlParams.get('username');
     const yearString: string | null = urlParams.get("year");
     const sentFrom: string | null = urlParams.get("sentFrom");
     const backgroundString: string | null = urlParams.get("background");
@@ -65,7 +64,6 @@ export async function renderDraw(params: { container: HTMLElement, username?: st
 
     if (sentFrom) {
         if (sentFrom === "home") {
-            //Create a button to return to the year overview
             const returnHomeButton = createButton('blue', `Back to the ${viewYear} Overview`, "arrow_back");
             returnHomeButton.addEventListener('click', () => router.navigateTo("/"));
             state.setYear(+viewYear);
@@ -86,7 +84,6 @@ export async function renderDraw(params: { container: HTMLElement, username?: st
             filename = `canvas${viewYear}`;
         } else if (sentFrom === "user") {
             document.title = `${params.username}'s Pixels | Canvas Stats`;
-            //Create a button to return to the user's stats
             const returnToUserButton = createButton('blue', 'Back to your stats', "arrow_back");
             returnToUserButton.addEventListener('click', () => router.navigateTo(`/users/${params.username}`));
             state.setYear(+viewYear);
@@ -126,7 +123,12 @@ export async function renderDraw(params: { container: HTMLElement, username?: st
     main.classList.remove("hide");
     mainLoader.classList.remove("hide");
 
-    const pixelData = await getPixelsForDraw(new DrawParams(viewYear, usernameString, undo, color, specialString, topOnly));
+    let pixelData: Pixel[] | null = null;
+    if (params.username) {
+        pixelData = await getPixelsForDraw(new DrawParams(viewYear, params.username, undo, color, specialString, topOnly));
+    } else {
+        pixelData = await getPixelsForDraw(new DrawParams(viewYear, null, undo, color, specialString, topOnly));
+    }
     if (instanceNameString) {
         let users: string[] = [];
         let instanceId = await getInstanceIdForName(instanceName);
@@ -142,7 +144,7 @@ export async function renderDraw(params: { container: HTMLElement, username?: st
     }
 
 
-    //Set the Canvas dimensions for the year
+    // Set the Canvas dimensions for the year
     if (viewYear === 2023) {
         canvasHeight = 1000;
         canvasWidth = 1000;

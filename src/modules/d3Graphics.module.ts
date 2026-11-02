@@ -137,8 +137,6 @@ export async function createLineGraph(
             };
         });
     } else {
-        // Map incoming arrays dynamically. If the array elements still have 'pixelCount', 
-        // we safely map it to 'value' so TypeScript doesn't throw an error.
         parsedData = inputData.map(d => ({
             timestamp: d.timestamp,
             value: d.value !== undefined ? d.value : +(d as any).pixelCount
